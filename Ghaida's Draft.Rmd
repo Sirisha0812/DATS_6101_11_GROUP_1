@@ -1,0 +1,135 @@
+---
+title: "Summary paper draft"
+Auther: "Ghaida Takrooni"
+output: html_document
+date: "2024-03-25"
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+
+
+
+
+**Why did your team choose this topic?**
+
+In the rapidly evolving landscape of financial markets, cryptocurrencies, particularly Bitcoin, have emerged as both a revolutionary asset class and a litmus test for new economic theories.
+Amidst volatile price movements and burgeoning market participation, understanding the forces that drive trading volume in the cryptocurrency sphere is more critical than ever.
+This paper delves into the intricate relationship between market indicators and the trading volume of Bitcoin, aiming to unveil patterns that may predict future market behaviors.
+We will be analyzing the impact of various financial indicators and their effects on Bitcoin trading.
+Market indicators play a crucial role in understanding the dynamics of Bitcoin trading volumes, reflecting investor sentiment and market trends.
+Whether it's traditional metrics like stock market indices or emerging indicators unique to the cryptocurrency space, the impact on Bitcoin trading volume unveils insights into market behavior and influences investment decisions.
+
+**What prior research and analysis have been done on this topic?**
+
+• Literature review: 
+The study "Relationship between price and volume in the Bitcoin market" by Eray Gemici and Müslüm Polat, published in The Journal of Risk Finance in November 2019, investigates the interplay between Bitcoin's price and trading volume from January 1, 2012, to April 7, 2018. Utilizing data from the Bitstamp market, the authors employ cointegration and causality tests to analyze 2286 observations, addressing the literature gap on Bitcoin's pricing behaviors. Their findings reveal a significant causality from price to volume, with negative price shocks affecting trading volume negatively and positive volume shocks impacting prices positively. This highlights the driving influence of price changes on trading volumes in the volatile Bitcoin market. The study's innovation lies in its exploration of symmetric and asymmetric causality between Bitcoin price and volume, offering new insights for investors and portfolio managers on trading decisions. By demonstrating a cointegrated relationship between price and volume, the research confirms a long-term equilibrium between these variables, contributing valuable knowledge to the cryptocurrency discourse and setting a foundation for further academic inquiry into economic behaviors of digital currencies.
+
+• The study "The relationship between trend and volume on the bitcoin market" by Szetela, Mentel, Bilan, and Mentel, published in February 2021 in the Eurasian Economic Review, examines the connection between Bitcoin's price trends and trading volume using data from January 14, 2015, to December 22, 2019. Utilizing the Vector Error Correction Model (VECM) and the Average Directional Movement Index (ADX) to measure trend strength, the research finds no long-term relationship between trend strength and trading volume in both upward and downward market movements. A notable exception is observed in downward trends, where a significant long-term relationship exists, indicating volume changes affect trend strength, albeit with an adjustment speed of 88%. Short-term analyses reveal a negligible dependency between these factors, suggesting trend strength's general insensitivity to volume changes. This contribution enriches the understanding of market dynamics in cryptocurrency, particularly for investors and traders looking to navigate Bitcoin's volatile market based on trend analysis.
+
+**Information about the dataset(s) you used.**
+
+The dataset uploaded revolve around Bitcoin (BTC) and appears to encompass a range of financial data points from January 2, 2015, to March 9, 2024.
+It includes 3,355 entries and 20 coulmns.
+This dataset provides a comprehensive view of Bitcoin's trading activity and volatility over the specified period.
+It includes both basic financial metrics (open, high, low, close, volume) and technical indicators (RSI, CCI, SMA, EMA, MACD, Bollinger Bands, True Range, ATR), which are useful for analyzing market trends and making investment decisions.
+
+**Limitations of the dataset(s). What additional information would have been helpful?**
+
+The dataset we have used offers a solid foundation for analyzing Bitcoin's price movements and market trends over a specified period.
+However, like all datasets, it has its own limitations, and there are areas where additional information could enhance its utility.
+For example, the dataset could incorporate additional financial features that provides more nuanced that aids the understanding of market behavior.
+For instance, features like volatility indices, the Sharpe ratio, or liquidity measures could offer deeper insights into market risk and investment potential.
+There are also features like market sentiment.
+Incorporating data on market sentiment, such as news sentiment analysis, social media trends, and major announcements related to cryptocurrency, could offer predictive insights into price movements.
+Sentiment analysis can be particularly valuable in markets known for their volatility and sensitivity to news and social media.
+All these features mentioned could improve and give more depth and dimension to the analysis.
+
+**Your SMART questions, and how did they come up?**
+
+in this project we looked for most relavent questions that could be answerd using the dataset.
+AS a result we cameup with these questions:
+
+• How does Bitcoin's trading volume respond to changes in its price (open, high, low, close)?
+
+• What is the relationship between trading volume and technical indicators such as RSI, MACD, and Bollinger Bands?
+
+• Can we identify patterns or trends in trading volume related to specific market conditions indicated by technical analysis??
+
+• At what volumes the RSI and CCI were the strongest and weakest?
+
+• In which year's most of the volume were traded and at what price?
+
+**After the EDA, did your questions change? If so, how? No, after the EDA we realized that we want to explore the SMART questions we cameup with further more. 
+
+**What tests did you use? What were the results? Interpret your results. Draw conclusions. How do these answer the SMART questions?**
+
+For the first SMART question, I started with 
+```{r}
+# Load necessary libraries
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+btc_data= data.frame(read.csv("btc_2015_2024.csv"))
+
+# Calculate correlation between trading volume and price metrics
+cor_volume_price <- cor(btc_data$volume, btc_data[,c('open', 'high', 'low', 'close')])
+
+# Print the correlation matrix
+print(cor_volume_price)
+
+```
+
+```{r}
+# Select the columns relevant for the analysis
+btc_analysis <- btc_data %>%
+  select(volume, rsi_7, rsi_14, macd, bollinger)
+
+# Calculate correlation matrix for the selected columns
+cor_volume_indicators <- cor(btc_analysis)
+
+# Print the correlation matrix focusing on volume
+print(cor_volume_indicators['volume',])
+
+
+```
+
+```{r}
+# Install necessary packages
+install.packages("GGally")
+install.packages("TTR")
+install.packages("quantmod")
+install.packages("lmtest")
+install.packages("dplyr")
+install.packages("ggplot2")
+
+library(readr) # For reading CSV files
+library(dplyr) # For data manipulation
+library(ggplot2) # For data visualization
+library(GGally) # For advanced correlation plots
+library(TTR) # For technical indicators like RSI, MACD
+library(quantmod) # For additional financial analysis tools
+
+# Correlation plot for selected variables
+ggcorr(btc_data[,c('volume', 'open', 'high', 'low', 'close', 'rsi_7', 'rsi_14', 'macd', 'bollinger')],
+       label = TRUE)
+
+btc_data$date <- as.Date(btc_data$date)
+
+ggplot(btc_data, aes(x = date)) +
+  geom_line(aes(y = close, color = "Close Price")) +
+  geom_line(aes(y = volume/1000000, color = "Volume (Millions)")) +
+  labs(title = "Bitcoin Close Price and Volume Over Time", x = "Date", y = "") +
+  scale_color_manual("", values = c("Close Price" = "blue", "Volume (Millions)" = "red")) +
+  theme_minimal()
+
+```
+
+**Refrences**
+
+Gemici, E., & Polat, M. (2019). Relationship between price and volume in the Bitcoin market. The Journal of Risk Finance, 20(5), 411-422. https://doi.org/10.1108/JRF-07-2018-0111
+
+
+Szetela, B., Mentel, G., Bilan, Y., & Mentel, U. (2021). The relationship between trend and volume on the bitcoin market. Eurasian Economic Review, February 2021. https://doi.org/10.1007/s40822-021-00166-5
