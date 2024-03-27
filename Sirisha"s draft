@@ -1,0 +1,27 @@
+---
+title: "Sirisha's draft"
+Auther: "Sirisha Ginnu"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+date: "2024-03-25"
+
+---
+
+## After the EDA, did your questions change? If so, how? 
+There was no indication that the EDA findings necessitated a change in the SMART questions, but rather, it provided confirmation that the initial questions were on the right track. This kind of outcome is not uncommon in research, where preliminary analysis can either validate the initial direction of inquiry or indicate a need for adjustment. In this case, the EDA served as a validation step for the SMART questions
+
+## What tests did you use? What were the results? Interpret your results. 
+
+Cointegration and Causality Tests: "Relationship between price and volume in the Bitcoin market" by Eray Gemici and Müslüm Polat, utilized cointegration and causality tests to analyze the relationship between Bitcoin's price and trading volume. The findings from this prior research indicated a significant causality from price to volume, where negative price shocks affected trading volume negatively, and positive volume shocks had a positive impact on prices. This study highlighted the influence of price changes on trading volumes in the Bitcoin market and confirmed a long-term equilibrium between these variables.
+
+Correlation Analysis:  likely to understand the relationship between different variables, such as price and volume, within the Bitcoin market. Although specific results of the correlation analysis were not provided in the summary, this method is commonly used to measure the strength and direction of the relationship between two variables.
+
+ANOVA (Analysis of Variance): An ANOVA test was mentioned for analyzing yearly trends within the dataset. ANOVA is a statistical method used to compare the means of three or more groups to understand if at least one of the group means is significantly different from the others. This can help in identifying patterns or trends over time. 
