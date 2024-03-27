@@ -296,6 +296,11 @@ There was no indication that the EDA findings necessitated a change in the SMART
 This kind of outcome is not uncommon in research, where preliminary analysis can either validate the initial direction of inquiry or indicate a need for adjustment.
 In this case, the EDA served as a validation step for the SMART questions
 
+## After the EDA, did your questions change? If so, how? 
+
+There was no indication that the EDA findings necessitated a change in the SMART questions, but rather, it provided confirmation that the initial questions were on the right track. This kind of outcome is not uncommon in research, where preliminary analysis can either validate the initial direction of inquiry or indicate a need for adjustment. In this case, the EDA served as a validation step for the SMART questions
+
+
 ## TESTING
 
 Cointegration and Causality Tests: "Relationship between price and volume in the Bitcoin market" by Eray Gemici and Müslüm Polat, utilized cointegration and causality tests to analyze the relationship between Bitcoin's price and trading volume.
