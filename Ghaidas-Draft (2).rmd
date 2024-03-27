@@ -1,0 +1,630 @@
+---
+title: "Summary paper draft"
+Auther: ""
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+date: "2024-03-25"
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r init, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+# knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+## ABSTRACT
+
+## INTRODUCTION:
+
+In the rapidly evolving landscape of financial markets, cryptocurrencies, particularly Bitcoin, have emerged as both a revolutionary asset class and a litmus test for new economic theories.
+Amidst volatile price movements and burgeoning market participation, understanding the forces that drive trading volume in the cryptocurrency sphere is more critical than ever.
+This paper delves into the intricate relationship between market indicators and the trading volume of Bitcoin, aiming to unveil patterns that may predict future market behaviors.
+We will be analyzing the impact of various financial indicators and their effects on Bitcoin trading.
+Market indicators play a crucial role in understanding the dynamics of Bitcoin trading volumes, reflecting investor sentiment and market trends.
+Whether it's traditional metrics like stock market indices or emerging indicators unique to the cryptocurrency space, the impact on Bitcoin trading volume unveils insights into market behavior and influences investment decisions.
+
+## LITERATURE REVIEW:
+
+• The study "Relationship between price and volume in the Bitcoin market" by Eray Gemici and Müslüm Polat, published in The Journal of Risk Finance in November 2019, investigates the interplay between Bitcoin's price and trading volume from January 1, 2012, to April 7, 2018.
+Utilizing data from the Bitstamp market, the authors employ cointegration and causality tests to analyze 2286 observations, addressing the literature gap on Bitcoin's pricing behaviors.
+Their findings reveal a significant causality from price to volume, with negative price shocks affecting trading volume negatively and positive volume shocks impacting prices positively.
+This highlights the driving influence of price changes on trading volumes in the volatile Bitcoin market.
+The study's innovation lies in its exploration of symmetric and asymmetric causality between Bitcoin price and volume, offering new insights for investors and portfolio managers on trading decisions.
+By demonstrating a cointegrated relationship between price and volume, the research confirms a long-term equilibrium between these variables, contributing valuable knowledge to the cryptocurrency discourse and setting a foundation for further academic inquiry into economic behaviors of digital currencies.
+
+• The study "The relationship between trend and volume on the bitcoin market" by Szetela, Mentel, Bilan, and Mentel, published in February 2021 in the Eurasian Economic Review, examines the connection between Bitcoin's price trends and trading volume using data from January 14, 2015, to December 22, 2019.
+Utilizing the Vector Error Correction Model (VECM) and the Average Directional Movement Index (ADX) to measure trend strength, the research finds no long-term relationship between trend strength and trading volume in both upward and downward market movements.
+A notable exception is observed in downward trends, where a significant long-term relationship exists, indicating volume changes affect trend strength, albeit with an adjustment speed of 88%.
+Short-term analyses reveal a negligible dependency between these factors, suggesting trend strength's general insensitivity to volume changes.
+This contribution enriches the understanding of market dynamics in cryptocurrency, particularly for investors and traders looking to navigate Bitcoin's volatile market based on trend analysis.
+
+## SUMMARY OF DATASET
+
+The dataset uploaded revolve around Bitcoin (BTC) and appears to encompass a range of financial data points from January 2, 2015, to March 9, 2024.
+It includes 3,355 entries and 20 coulmns.
+This dataset provides a comprehensive view of Bitcoin's trading activity and volatility over the specified period.
+It includes both basic financial metrics (open, high, low, close, volume) and technical indicators (RSI, CCI, SMA, EMA, MACD, Bollinger Bands, True Range, ATR), which are useful for analyzing market trends and making investment decisions.
+
+## LIMITATIONS:
+
+The dataset we have used offers a solid foundation for analyzing Bitcoin's price movements and market trends over a specified period.
+However, like all datasets, it has its own limitations, and there are areas where additional information could enhance its utility.
+For example, the dataset could incorporate additional financial features that provides more nuanced that aids the understanding of market behavior.
+For instance, features like volatility indices, the Sharpe ratio, or liquidity measures could offer deeper insights into market risk and investment potential.
+There are also features like market sentiment.
+Incorporating data on market sentiment, such as news sentiment analysis, social media trends, and major announcements related to cryptocurrency, could offer predictive insights into price movements.
+Sentiment analysis can be particularly valuable in markets known for their volatility and sensitivity to news and social media.
+All these features mentioned could improve and give more depth and dimension to the analysis.
+
+## DATA SET OVERVIEW
+
+Objective: Get a general understanding of the dataset.
+
+```{r s1, echo=T, results='markup'}
+btc_data <- read.csv("btc_2015_2024.csv")
+str(btc_data)
+```
+
+### Pre-processing The Data
+
+Objective: Get a general understanding of the dataset.
+
+```{r s2, echo=T, results='markup'}
+library(outliers)
+btc_data$rsi_7 <- outlierKD2(btc_data, btc_data$rsi_7, TRUE)
+btc_data$macd <- outlierKD2(btc_data, btc_data$macd, TRUE)
+btc_data <- na.omit(btc_data)
+btc_data$date <- as.Date(btc_data$date)
+str(btc_data)
+summary(btc_data$rsi_7)
+
+```
+
+## EXPLORATORY DATA ANALYSIS (EDA)
+
+Objective: Understand the data's basic characteristics.
+The selection of trading volume, RSI (Relative Strength Index), MACD (Moving Average Convergence Divergence), and Bollinger Bands for visualization in the Bitcoin dataset is based on their significance and common use in financial data analysis, especially in the context of cryptocurrencies like Bitcoin.
+Here's why each was chosen:
+
+### Trading Volume
+
+It indicates how many units of a currency were traded within a specified time frame.
+In financial markets, higher volume often correlates with price movement, making it a key metric to understand market activity.
+
+```{r, echo=T, results='markup'}
+library(ggplot2)
+### Histogram for RSI
+# Flatten the nested 'rsi_7' dataframe column
+btc_data$rsi_7 <- btc_data$rsi_7$rsi_7
+
+# Similarly for 'macd' if it's also a nested dataframe
+btc_data$macd <- btc_data$macd$macd
+
+# Histogram for Trading Volume
+ggplot(btc_data, aes(x = volume)) + 
+  geom_histogram(bins = 30, fill = "blue", color = "black") +
+  ggtitle("Histogram of Trading Volume") + 
+  xlab("Trading Volume") + 
+  ylab("Frequency")
+
+# Boxplot for Trading Volume
+ggplot(btc_data, aes(y = volume)) + 
+  geom_boxplot(fill = "blue") +
+  ggtitle("Boxplot of Trading Volume") + 
+  ylab("Trading Volume")
+
+# QQ-Plot for Trading Volume
+qqnorm(btc_data$volume, main="")
+qqline(btc_data$volume, col = "blue")
+title("QQ-Plot of Trading Volume")
+```
+
+### RSI
+
+A momentum oscillator that measures the speed and change of price movements.
+RSI is often used to identify overbought or oversold conditions in a market, making it crucial for analyzing market sentiment.
+
+```{r, echo=T, results='markup'}
+# Histogram for RSI
+ggplot(btc_data, aes(x = rsi_7)) + 
+  geom_histogram(bins = 30, fill = "green", color = "black") +
+  ggtitle("Histogram of RSI") + 
+  xlab("RSI") + 
+  ylab("Frequency")
+
+# Boxplot for RSI
+ggplot(btc_data, aes(y = rsi_7)) + 
+  geom_boxplot(fill = "green") +
+  ggtitle("Boxplot of RSI") + 
+  ylab("RSI")
+
+# QQ-Plot for RSI
+qqnorm(btc_data$rsi_7, main = "")
+qqline(btc_data$rsi_7, col = "green")
+title("QQ-Plot of RSI")
+```
+
+### MACD
+
+A trend-following momentum indicator that shows the relationship between two moving averages of a security's price.
+It's useful for identifying potential buy and sell signals.
+
+```{r, echo=T, results='markup'}
+# Histogram for MACD
+ggplot(btc_data, aes(x = macd)) + 
+  geom_histogram(bins = 30, fill = "red", color = "black") +
+  ggtitle("Histogram of MACD") + 
+  xlab("MACD") + 
+  ylab("Frequency")
+
+# Boxplot for MACD
+ggplot(btc_data, aes(y = macd)) + 
+  geom_boxplot(fill = "red") +
+  ggtitle("Boxplot of MACD") + 
+  ylab("MACD")
+
+# QQ-Plot for MACD
+qqnorm(btc_data$macd, main = "")
+qqline(btc_data$macd, col = "red")
+title("QQ-Plot of MACD")
+```
+
+### Bollinger Bands
+
+A volatility indicator that consists of a middle SMA along with upper and lower bands.
+It's particularly helpful in assessing how 'overbought' or 'oversold' an asset is.
+
+```{r, echo=T, results='markup'}
+# Histogram for Bollinger Bands
+ggplot(btc_data, aes(x = bollinger)) + 
+  geom_histogram(bins = 30, fill = "orange", color = "black") +
+  ggtitle("Histogram of Bollinger Bands") + 
+  xlab("Bollinger Bands") + 
+  ylab("Frequency")
+
+# Boxplot for Bollinger Bands
+ggplot(btc_data, aes(y = bollinger)) + 
+  geom_boxplot(fill = "orange") +
+  ggtitle("Boxplot of Bollinger Bands") + 
+  ylab("Bollinger Bands")
+
+# QQ-Plot for Bollinger Bands
+qqnorm(btc_data$bollinger, main = "")
+qqline(btc_data$bollinger, col = "orange")
+title("QQ-Plot of Bollinger Bands")
+
+```
+
+**Regarding the types of plots:**
+
+Histograms are useful for understanding the distribution of these variables.
+They can reveal patterns like normal distribution, skewness, or the presence of outliers.
+
+Boxplots provide a visual summary of the key quartiles of a dataset, along with its outliers.
+They are particularly useful for comparing the distribution and central tendency of a variable across different categories.
+
+QQ-Plots (Quantile-Quantile Plots) are used to assess whether a dataset follows a given distribution, such as the normal distribution.
+They are beneficial for checking the assumption of normality, which is a prerequisite for many statistical tests.
+
+**RSI and CCI**
+
+We sorted trading volumes into buckets to make our data easier to understand.
+This step lets us see the bigger picture, like whether generally, when there's a lot or a little trading, the RSI and CCI readings signal that Bitcoin's price might rise or fall.
+
+After organizing the data, it's clear that both high RSI and CCI values tend to show up when there's either a lot or very little trading---this might mean the market is optimistic.
+On the other hand, when trading is somewhere in the middle, the RSI isn't as strong, suggesting less optimism.
+
+```{r, echo=T, results='markup'}
+# Load necessary library
+library(ggplot2)
+
+
+# Define volume ranges for analysis
+volume_breaks <- quantile(btc_data$volume, probs = seq(0, 1, 0.25))
+btc_data$volume_range <- cut(btc_data$volume, breaks = volume_breaks, include.lowest = TRUE, labels = c("Low", "Medium", "High", "Very High"))
+
+# Aggregate data based on volume range
+volume_analysis <- aggregate(cbind(rsi_7, cci_7) ~ volume_range, data = btc_data, function(x) c(mean = mean(x, na.rm = TRUE), min = min(x, na.rm = TRUE), max = max(x, na.rm = TRUE)))
+
+# Output the aggregated data
+print(volume_analysis)
+
+```
+
+Even though the RSI and CCI can hit highs and lows at any trading volume, it's clear they're just part of the story.
+They don't always march in step with how much Bitcoin is being traded.
+This hints that many different things are stirring the pot in the Bitcoin market, and it's worth looking beyond just these two signals when predicting where things might head.
+
+## WHAT CAN WE DO WITH THE ANALYSIS?
+
+In this project we looked for most relavent questions that could be answerd using the dataset.
+AS a result we cameup with these questions:
+
+- How does Bitcoin's trading volume respond to changes in its price (open, high, low, close)?
+
+- What is the relationship between trading volume and technical indicators such as RSI, MACD, and Bollinger Bands?
+
+- At what volumes the RSI and CCI were the strongest and weakest?
+
+- In which year's most of the volume were traded and at what price?
+
+- Can we identify patterns or trends in trading volume related to specific market conditions indicated by technical analysis?
+
+
+The formulation of the SMART questions was a critical and deliberate process, aimed at guiding our investigation into the complex dynamics of Bitcoin trading.
+The questions emerged from a keen understanding of the cryptocurrency market, its volatility, and the need to explore the impact of various financial indicators on trading behaviors.
+
+**CONCEPTUAL FRAMWORK**
+
+**Market Trends and Analysis:** Recognizing the volatility and the emerging nature of cryptocurrency, especially Bitcoin, we focused on uncovering patterns and trends that could explain market movements.
+This led to questions targeting the relationship between trading volume and price changes, as well as technical indicators.
+
+**Relevance of Financial Indicators:** The decision to include RSI, MACD, and Bollinger Bands was informed by their prevalent use and significance in financial market analysis.
+These indicators are often considered critical tools for traders and analysts in understanding market sentiment and predicting future trends.
+
+**Data-Driven Inquiry:** The availability of comprehensive Bitcoin trading data from 2015 to 2024 provided a rich resource for empirical analysis.
+This data availability influenced our questions, allowing us to delve deeply into the statistical relationships between trading volume and various market indicators.
+
+The SMART questions were thus a product of a meticulous process that combined an understanding of the cryptocurrency market, the potential of the available data, and the necessity to provide meaningful, actionable insights into Bitcoin trading.
+This careful crafting ensured that each question was not only specific and measurable but also achievable, relevant, and time-bound, fitting perfectly into the framework of our analytical goals
+
+There was no indication that the EDA findings necessitated a change in the SMART questions, but rather, it provided confirmation that the initial questions were on the right track.
+This kind of outcome is not uncommon in research, where preliminary analysis can either validate the initial direction of inquiry or indicate a need for adjustment.
+In this case, the EDA served as a validation step for the SMART questions
+
+## TESTING
+
+Cointegration and Causality Tests: "Relationship between price and volume in the Bitcoin market" by Eray Gemici and Müslüm Polat, utilized cointegration and causality tests to analyze the relationship between Bitcoin's price and trading volume.
+The findings from this prior research indicated a significant causality from price to volume, where negative price shocks affected trading volume negatively, and positive volume shocks had a positive impact on prices.
+This study highlighted the influence of price changes on trading volumes in the Bitcoin market and confirmed a long-term equilibrium between these variables.
+
+Correlation Analysis: likely to understand the relationship between different variables, such as price and volume, within the Bitcoin market.
+Although specific results of the correlation analysis were not provided in the summary, this method is commonly used to measure the strength and direction of the relationship between two variables.
+
+ANOVA (Analysis of Variance): An ANOVA test was mentioned for analyzing yearly trends within the dataset.
+ANOVA is a statistical method used to compare the means of three or more groups to understand if at least one of the group means is significantly different from the others.
+This can help in identifying patterns or trends over time.
+
+### SMART Q1: How does Bitcoin's trading volume respond to changes in its price (open, high, low, close)?
+
+```{r}
+# Load necessary libraries
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+btc_data= data.frame(read.csv("btc_2015_2024.csv"))
+
+# Calculate correlation between trading volume and price metrics
+cor_volume_price <- cor(btc_data$volume, btc_data[,c('open', 'high', 'low', 'close')])
+
+# Print the correlation matrix
+print(cor_volume_price)
+
+```
+
+**T-Test** Let's do a t-test to compare trading volumes on days with maximum and minimum prices:
+
+```{r s4, echo=T, results='markup'}
+# Categorize the data into 'high' and 'low' price days based on median
+high_price_days <- btc_data$close > median(btc_data$close)
+low_price_days <- btc_data$close <= median(btc_data$close)
+
+t_test_prices <- t.test(btc_data$volume[high_price_days], 
+                        btc_data$volume[low_price_days])
+
+print(t_test_prices)
+
+```
+
+We found that t-test is not the most appropriate tool for comparing a single day against all others.
+A different approach might be necessary, such as looking at a range of high and low prices or using other statistical methods to assess the impact of price on volume.
+
+**Correlation Test**
+
+```{r, echo=T, results='markup'}
+btc_data$date <- as.Date(btc_data$date, format = "%Y-%m-%d")
+
+# Calculate correlation coefficient
+correlation <- cor.test(btc_data$close, btc_data$volume, method = "pearson")
+
+# Print the correlation result
+print(correlation)
+
+# Plot
+ggplot(btc_data, aes(x = close, y = volume)) +
+  geom_point(alpha = 0.5) + # Scatter plot points
+  geom_smooth(method = "lm", color = "blue") + # Regression line
+  labs(title = "Correlation between BTC Close Price and Trading Volume",
+       x = "BTC Close Price (USD)",
+       y = "BTC Trading Volume") +
+  theme_minimal()
+```
+
+The output indicates a strong positive correlation (r = 0.666) between Bitcoin's closing price and trading volume, which is statistically significant (p-value \< 2e-16).
+The 95% confidence interval for the correlation coefficient ranges from 0.646 to 0.684, suggesting a moderately strong linear relationship.
+This implies that as the Bitcoin closing price increases, the trading volume tends to increase as well, with a fairly high degree of confidence in this observed relationship across the dataset.
+
+### SMART Q2: What is the relationship between trading volume and technical indicators such as RSI, MACD, and Bollinger Bands?
+
+```{r}
+# Select the columns relevant for the analysis
+btc_analysis <- btc_data %>%
+  select(volume, rsi_7, rsi_14, macd, bollinger)
+
+# Calculate correlation matrix for the selected columns
+cor_volume_indicators <- cor(btc_analysis)
+
+# Print the correlation matrix focusing on volume
+print(cor_volume_indicators['volume',])
+
+
+```
+
+```{r}
+# Install necessary packages
+# install.packages("GGally")
+# install.packages("TTR")
+# install.packages("quantmod")
+# install.packages("lmtest")
+# install.packages("dplyr")
+# install.packages("ggplot2")
+
+library(readr) # For reading CSV files
+library(dplyr) # For data manipulation
+library(ggplot2) # For data visualization
+library(GGally) # For advanced correlation plots
+library(TTR) # For technical indicators like RSI, MACD
+library(quantmod) # For additional financial analysis tools
+
+# Correlation plot for selected variables
+ggcorr(btc_data[,c('volume', 'open', 'high', 'low', 'close', 'rsi_7', 'rsi_14', 'macd', 'bollinger')],
+       label = TRUE)
+
+btc_data$date <- as.Date(btc_data$date)
+
+ggplot(btc_data, aes(x = date)) +
+  geom_line(aes(y = close, color = "Close Price")) +
+  geom_line(aes(y = volume/1000000, color = "Volume (Millions)")) +
+  labs(title = "Bitcoin Close Price and Volume Over Time", x = "Date", y = "") +
+  scale_color_manual("", values = c("Close Price" = "blue", "Volume (Millions)" = "red")) +
+  theme_minimal()
+
+```
+We conduct a correlation analysis and visualize it:
+
+```{r, echo=T, results='markup'}
+# Correlation analysis
+cor_volume_rsi <- cor.test(btc_data$volume, btc_data$rsi_7)
+cor_volume_macd <- cor.test(btc_data$volume, btc_data$macd)
+cor_volume_bbands <- cor.test(btc_data$volume, btc_data$bollinger)
+
+# Output the results
+print(cor_volume_rsi)
+print(cor_volume_macd)
+print(cor_volume_bbands)
+
+library(ggplot2)
+
+# Scatterplot for Volume vs. RSI
+ggplot(btc_data, aes(x = rsi_7, y = volume)) + 
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", col = "blue") +
+  ggtitle("Scatterplot of Trading Volume vs. RSI") +
+  xlab("RSI") +
+  ylab("Trading Volume")
+
+# Histogram for Trading Volume
+ggplot(btc_data, aes(x = volume)) + 
+  geom_histogram(binwidth = 5000000, fill = 'blue', color = 'black') + 
+  ggtitle("Histogram of Bitcoin Trading Volume") +
+  xlab("Trading Volume") + ylab("Frequency")
+
+# Boxplot for Trading Volume vs. Bollinger Bands
+ggplot(btc_data, aes(x = as.factor(bollinger > median(btc_data$bollinger)), y = volume)) + 
+  geom_boxplot() +
+  ggtitle("Boxplot of Trading Volume vs. Bollinger Bands") +
+  xlab("Bollinger Bands Category") + 
+  ylab("Trading Volume")
+
+```
+
+The correlation analysis and the provided plots indicate different levels of association between Bitcoin trading volume and various technical indicators:
+
+**Trading Volume and RSI:** The correlation coefficient is approximately -0.00248, with a p-value of 0.9.
+This suggests no significant linear relationship between trading volume and the RSI.
+The scatterplot supports this finding, showing no clear pattern or trend between the RSI and trading volume.
+
+**Trading Volume and MACD:** The correlation coefficient is about 0.156 with a p-value close to 0.
+This indicates a weak positive linear relationship between trading volume and the MACD.
+The scatterplot may show a slight positive trend, but given the weakness of the correlation, the MACD's predictive power for trading volume is likely limited.
+
+**Trading Volume and Bollinger Bands:** The correlation coefficient here is 0.663 with a p-value \< 2e-16, suggesting a moderate positive linear relationship between trading volume and Bollinger Bands.
+The plot likely reflects this with higher trading volumes corresponding with the activation of the Bollinger Bands (true category).
+
+These results suggest that among the three technical indicators examined, Bollinger Bands have the most substantial relationship with Bitcoin trading volume, followed by MACD with a weaker association, and RSI with essentially no correlation.
+These findings can help inform predictions about trading volume based on the status of Bollinger Bands, though further analysis would be needed to build a robust predictive model.
+
+
+
+### SMART Q3: At what volumes the RSI and CCI were the strongest and weakest?
+
+
+
+FILL HERE 
+
+
+
+
+
+### SMART Q4: What is the relationship between trading volume and technical indicators such as RSI, MACD, and Bollinger Bands?
+
+FILL HERE 
+
+
+### SMART Q5: Can we identify patterns or trends in trading volume related to specific market conditions indicated by technical analysis?
+
+```{r, echo=T, results='markup'}
+cor_volume_rsi <- cor.test(btc_data$volume, btc_data$rsi_7)
+cor_volume_macd <- cor.test(btc_data$volume, btc_data$macd)
+cor_volume_bollinger <- cor.test(btc_data$volume, btc_data$bollinger)
+
+# Print the correlation results
+print(cor_volume_rsi)
+print(cor_volume_macd)
+print(cor_volume_bollinger)
+```
+
+The correlation analysis outputs and visual plots provided indicate that:
+
+There is no significant correlation between the trading volume of Bitcoin and its RSI value.
+The Pearson correlation coefficient is nearly zero (-0.00248) with a p-value of 0.9, suggesting no linear relationship.
+
+There is a weak but significant positive correlation between the trading volume and MACD values with a correlation coefficient of 0.156 and a p-value significantly less than 0.05.
+
+A moderately strong correlation is observed between trading volume and Bollinger Bands with a correlation coefficient of 0.663, which is substantiated by the very low p-value (\<2e-16).
+This indicates a significant linear relationship, where higher values on the Bollinger Bands are associated with larger trading volumes.
+
+```{r, echo=T, results='markup'}
+# Scatter plot for Volume vs. RSI
+ggplot(btc_data, aes(x = rsi_7, y = volume)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Scatterplot of Trading Volume vs. RSI", x = "RSI", y = "Trading Volume")
+
+# Scatter plot for Volume vs. MACD
+ggplot(btc_data, aes(x = macd, y = volume)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Scatterplot of Trading Volume vs. MACD", x = "MACD", y = "Trading Volume")
+
+# Scatter plot for Volume vs. Bollinger Bands
+ggplot(btc_data, aes(x = bollinger, y = volume)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "orange") +
+  labs(title = "Scatterplot of Trading Volume vs. Bollinger Bands", x = "Bollinger Bands", y = "Trading Volume")
+
+```
+
+The "Scatterplot of Trading Volume vs. RSI" shows data points heavily clustered near the lower end of the RSI scale without any discernible trend, which aligns with the almost zero correlation coefficient.
+
+The "Scatterplot of Trading Volume vs. MACD" shows a slight positive trend, as indicated by the fitted line, but the wide spread of the points suggests a lot of variability that isn't captured by a linear relationship alone.
+
+The "Scatterplot of Trading Volume vs. Bollinger Bands" shows an upward trend, where higher Bollinger Band values generally correspond with higher trading volumes, supported by the correlation analysis.
+
+For the question regarding the identification of patterns or trends in trading volume related to specific market conditions indicated by technical analysis, these analyses suggest that the Bollinger Bands might be a useful indicator for such patterns, especially given the moderate correlation with trading volume.
+However, the RSI and MACD are less useful for predicting trading volume based on the data provided.
+
+## CONCLUSION
+
+**Price Impact on Trading Volume:**
+
+Based on the testing above we conclude that:
+
+-   Open Price: A correlation of 0.667 suggests a strong positive relationship, indicating that higher opening prices are associated with higher trading volumes.
+
+-   High Price: A correlation of 0.673 shows a strong positive relationship, indicating that days with higher peaks prices tend to have higher trading volumes.
+
+-   Low Price: A correlation of 0.657 indicates a strong positive relationship, suggesting that days with lower trough prices still correlate with higher trading volumes, though slightly less so than high or open prices.
+
+-   Close Price: A correlation of 0.666 indicates a strong positive relationship, suggesting that higher closing prices are associated with higher trading volumes.
+
+-   There was a strong positive correlation between Bitcoin's closing price and trading volume (r = 0.666, p-value \< 2e-16).
+
+Overall, the results suggests that trading volume tends to increase with the price of Bitcoin across different metrics, with slightly stronger correlations for the high and open prices.
+This means that trading activity is generally higher on days with greater price movements or higher price levels.
+
+**Relationship Between Trading Volume and Technical Indicators:**
+
+The correlation coefficients between trading volume and market indicators indicate:
+
+-   RSI: The RSI indicator, which give you an idea of how overbought or oversold a market is shows almost no correlation with trading volume, suggesting that momentum alone, as measured by RSI, is not a significant driver of trading volume in the Bitcoin market.
+
+-   MACD: As for MACD, the weak positive correlation with MACD suggests that stronger trends may be accompanied by slightly higher trading volumes.
+
+-   Bollinger bands: The strongest correlation observed is with the Bollinger Bands indicator, it implies that trading volume is more responsive to price volatility and the price's position relative to historical variability.
+    This can be useful for traders and analysts, suggesting that periods of high volatility might be opportune times for trade execution due to higher liquidity.
+
+**Patterns and Trends in Trading Volume:** - Finding: The study showed significant yearly trends in Bitcoin trading volume, with certain years exhibiting markedly higher volumes.
+- Implication: This underscores the impact of broader market conditions and possibly external factors on Bitcoin trading activity over the years.
+Visual Evidence from the Analysis
+
+To further illustrate these findings, let's reference a few key plots:
+
+**Correlation Plot Between BTC Close Price and Trading Volume:**
+
+```{r}
+ggplot(btc_data, aes(x = close, y = volume)) +
+  geom_point(alpha = 0.5) + # Scatter plot points
+  geom_smooth(method = "lm", color = "blue") + # Regression line
+  labs(title = "Correlation between BTC Close Price and Trading Volume",
+       x = "BTC Close Price (USD)",
+       y = "BTC Trading Volume") +
+  theme_minimal()
+```
+
+This plot clearly shows a positive trend line, supporting the conclusion that higher close prices are associated with higher trading volumes.
+
+**Scatterplot of Trading Volume vs. Bollinger Bands:**
+
+```{r, echo=TRUE, results='markup'}
+ggplot(btc_data, aes(x = bollinger, y = volume)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "orange") +
+  labs(title = "Scatterplot of Trading Volume vs. Bollinger Bands", x = "Bollinger Bands", y = "Trading Volume")
+```
+
+This scatterplot demonstrates a visible upward trend, indicating a relationship between higher Bollinger Band values and increased trading volumes.
+
+**Yearly Trading Volume Analysis:**
+
+```{r}
+# Extract year from date
+btc_data$year <- format(btc_data$date, "%Y")
+
+# ANOVA for yearly trends
+aov_results <- aov(volume ~ year, data = btc_data)
+summary(aov_results)
+```
+
+-   ANOVA analysis revealed significant yearly trends in Bitcoin trading volume, with certain years exhibiting markedly higher or lower volumes.
+-   Implication: This points to the presence of substantial fluctuations in trading volume over different years, influenced by various market and macroeconomic factors.
+
+The findings from our study are pivotal for understanding Bitcoin's market dynamics.
+They not only illuminate the significance of price changes and certain technical indicators in influencing trading volumes but also reveal the varying impact of these factors over time.
+This information is invaluable for investors and market analysts, aiding in the development of more nuanced trading strategies and a deeper understanding of market movements.
+
+While our analysis has provided substantial insights, further research could explore the causality between these variables, investigate the impact of external factors like regulatory changes or macroeconomic indicators, and potentially delve into predictive modeling for future market behavior.
+
+In conclusion, our study contributes significantly to the understanding of Bitcoin trading since there are connections between market indicators and trading volume offering empirical evidence and analytical perspectives that enhance our comprehension of this complex and ever-evolving market.
+
+## REFERENCES
+
+Gemici, E., & Polat, M.
+(2019).
+Relationship between price and volume in the Bitcoin market.
+The Journal of Risk Finance, 20(5), 411-422.
+<https://doi.org/10.1108/JRF-07-2018-0111>
+
+Szetela, B., Mentel, G., Bilan, Y., & Mentel, U.
+(2021).
+The relationship between trend and volume on the bitcoin market.
+Eurasian Economic Review, February 2021.
+<https://doi.org/10.1007/s40822-021-00166-5>
