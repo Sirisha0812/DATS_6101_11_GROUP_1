@@ -1,0 +1,507 @@
+---
+title: "Midterm Project"
+author: ""
+date: "today"
+# date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+# knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+## Long Huynh ---------------------------------------------------
+### Data Set Overview
+Objective: Get a general understanding of the dataset.
+```{r s1, echo=T, results='markup'}
+btc_data <- read.csv("btc_2015_2024.csv")
+str(btc_data)
+```
+
+### Preprocessing The Data
+Objective: Get a general understanding of the dataset.
+```{r s2, echo=T, results='markup'}
+library(outliers)
+btc_data$rsi_7 <- outlierKD2(btc_data, btc_data$rsi_7, TRUE)
+btc_data$macd <- outlierKD2(btc_data, btc_data$macd, TRUE)
+btc_data <- na.omit(btc_data)
+btc_data$date <- as.Date(btc_data$date)
+str(btc_data)
+summary(btc_data$rsi_7)
+
+```
+
+### Exploratory Data Analysis (EDA)
+Objective: Understand the data's basic characteristics.
+The selection of trading volume, RSI (Relative Strength Index), MACD (Moving Average Convergence Divergence), and Bollinger Bands for visualization in the Bitcoin dataset is based on their significance and common use in financial data analysis, especially in the context of cryptocurrencies like Bitcoin. Here's why each was chosen:
+
+Trading Volume: It indicates how many units of a currency were traded within a specified time frame. In financial markets, higher volume often correlates with price movement, making it a key metric to understand market activity.
+
+RSI: A momentum oscillator that measures the speed and change of price movements. RSI is often used to identify overbought or oversold conditions in a market, making it crucial for analyzing market sentiment.
+
+MACD: A trend-following momentum indicator that shows the relationship between two moving averages of a security’s price. It's useful for identifying potential buy and sell signals.
+
+Bollinger Bands: A volatility indicator that consists of a middle SMA along with upper and lower bands. It's particularly helpful in assessing how 'overbought' or 'oversold' an asset is.
+
+Regarding the types of plots:
+
+Histograms are useful for understanding the distribution of these variables. They can reveal patterns like normal distribution, skewness, or the presence of outliers.
+
+Boxplots provide a visual summary of the key quartiles of a dataset, along with its outliers. They are particularly useful for comparing the distribution and central tendency of a variable across different categories.
+
+QQ-Plots (Quantile-Quantile Plots) are used to assess whether a dataset follows a given distribution, such as the normal distribution. They are beneficial for checking the assumption of normality, which is a prerequisite for many statistical tests.
+```{r s3, echo=T, results='markup'}
+library(ggplot2)
+### Histogram for RSI
+# Flatten the nested 'rsi_7' dataframe column
+btc_data$rsi_7 <- btc_data$rsi_7$rsi_7
+
+# Similarly for 'macd' if it's also a nested dataframe
+btc_data$macd <- btc_data$macd$macd
+
+# Histogram for Trading Volume
+ggplot(btc_data, aes(x = volume)) + 
+  geom_histogram(bins = 30, fill = "blue", color = "black") +
+  ggtitle("Histogram of Trading Volume") + 
+  xlab("Trading Volume") + 
+  ylab("Frequency")
+
+# Boxplot for Trading Volume
+ggplot(btc_data, aes(y = volume)) + 
+  geom_boxplot(fill = "blue") +
+  ggtitle("Boxplot of Trading Volume") + 
+  ylab("Trading Volume")
+
+# QQ-Plot for Trading Volume
+qqnorm(btc_data$volume, main="")
+qqline(btc_data$volume, col = "blue")
+title("QQ-Plot of Trading Volume")
+
+# Histogram for RSI
+ggplot(btc_data, aes(x = rsi_7)) + 
+  geom_histogram(bins = 30, fill = "green", color = "black") +
+  ggtitle("Histogram of RSI") + 
+  xlab("RSI") + 
+  ylab("Frequency")
+
+# Boxplot for RSI
+ggplot(btc_data, aes(y = rsi_7)) + 
+  geom_boxplot(fill = "green") +
+  ggtitle("Boxplot of RSI") + 
+  ylab("RSI")
+
+# QQ-Plot for RSI
+qqnorm(btc_data$rsi_7, main = "")
+qqline(btc_data$rsi_7, col = "green")
+title("QQ-Plot of RSI")
+
+# Histogram for MACD
+ggplot(btc_data, aes(x = macd)) + 
+  geom_histogram(bins = 30, fill = "red", color = "black") +
+  ggtitle("Histogram of MACD") + 
+  xlab("MACD") + 
+  ylab("Frequency")
+
+# Boxplot for MACD
+ggplot(btc_data, aes(y = macd)) + 
+  geom_boxplot(fill = "red") +
+  ggtitle("Boxplot of MACD") + 
+  ylab("MACD")
+
+# QQ-Plot for MACD
+qqnorm(btc_data$macd, main = "")
+qqline(btc_data$macd, col = "red")
+title("QQ-Plot of MACD")
+
+# Histogram for Bollinger Bands
+ggplot(btc_data, aes(x = bollinger)) + 
+  geom_histogram(bins = 30, fill = "orange", color = "black") +
+  ggtitle("Histogram of Bollinger Bands") + 
+  xlab("Bollinger Bands") + 
+  ylab("Frequency")
+
+# Boxplot for Bollinger Bands
+ggplot(btc_data, aes(y = bollinger)) + 
+  geom_boxplot(fill = "orange") +
+  ggtitle("Boxplot of Bollinger Bands") + 
+  ylab("Bollinger Bands")
+
+# QQ-Plot for Bollinger Bands
+qqnorm(btc_data$bollinger, main = "")
+qqline(btc_data$bollinger, col = "orange")
+title("QQ-Plot of Bollinger Bands")
+
+```
+
+
+### Analyzing the Response of Bitcoin Trading Volume to Price Changes
+### How does Bitcoin's trading volume respond to changes in its price (open, high, low, close)?
+
+Using a t-test to compare trading volumes on days with maximum and minimum prices:
+```{r s4, echo=T, results='markup'}
+# Categorize the data into 'high' and 'low' price days based on median
+high_price_days <- btc_data$close > median(btc_data$close)
+low_price_days <- btc_data$close <= median(btc_data$close)
+
+t_test_prices <- t.test(btc_data$volume[high_price_days], 
+                        btc_data$volume[low_price_days])
+
+print(t_test_prices)
+
+```
+t-test is not the most appropriate tool for comparing a single day against all others. A different approach might be necessary, such as looking at a range of high and low prices or using other statistical methods to assess the impact of price on volume.
+
+
+```{r, echo=T, results='markup'}
+btc_data$date <- as.Date(btc_data$date, format = "%Y-%m-%d")
+
+# Calculate correlation coefficient
+correlation <- cor.test(btc_data$close, btc_data$volume, method = "pearson")
+
+# Print the correlation result
+print(correlation)
+
+# Plot
+ggplot(btc_data, aes(x = close, y = volume)) +
+  geom_point(alpha = 0.5) + # Scatter plot points
+  geom_smooth(method = "lm", color = "blue") + # Regression line
+  labs(title = "Correlation between BTC Close Price and Trading Volume",
+       x = "BTC Close Price (USD)",
+       y = "BTC Trading Volume") +
+  theme_minimal()
+```
+
+The output indicates a strong positive correlation (r = 0.666) between Bitcoin's closing price and trading volume, which is statistically significant (p-value < 2e-16). The 95% confidence interval for the correlation coefficient ranges from 0.646 to 0.684, suggesting a moderately strong linear relationship. This implies that as the Bitcoin closing price increases, the trading volume tends to increase as well, with a fairly high degree of confidence in this observed relationship across the dataset.
+
+### Relationship Between Trading Volume and Technical Indicators
+### What is the relationship between trading volume and technical indicators such as RSI, MACD, and Bollinger Bands?
+Conduct a correlation analysis and visualize it:
+```{r, echo=T, results='markup'}
+# Correlation analysis
+cor_volume_rsi <- cor.test(btc_data$volume, btc_data$rsi_7)
+cor_volume_macd <- cor.test(btc_data$volume, btc_data$macd)
+cor_volume_bbands <- cor.test(btc_data$volume, btc_data$bollinger)
+
+# Output the results
+print(cor_volume_rsi)
+print(cor_volume_macd)
+print(cor_volume_bbands)
+
+library(ggplot2)
+
+# Scatterplot for Volume vs. RSI
+ggplot(btc_data, aes(x = rsi_7, y = volume)) + 
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", col = "blue") +
+  ggtitle("Scatterplot of Trading Volume vs. RSI") +
+  xlab("RSI") +
+  ylab("Trading Volume")
+
+# Histogram for Trading Volume
+ggplot(btc_data, aes(x = volume)) + 
+  geom_histogram(binwidth = 5000000, fill = 'blue', color = 'black') + 
+  ggtitle("Histogram of Bitcoin Trading Volume") +
+  xlab("Trading Volume") + ylab("Frequency")
+
+# Boxplot for Trading Volume vs. Bollinger Bands
+ggplot(btc_data, aes(x = as.factor(bollinger > median(btc_data$bollinger)), y = volume)) + 
+  geom_boxplot() +
+  ggtitle("Boxplot of Trading Volume vs. Bollinger Bands") +
+  xlab("Bollinger Bands Category") + 
+  ylab("Trading Volume")
+
+```
+
+The correlation analysis and the provided plots indicate different levels of association between Bitcoin trading volume and various technical indicators:
+
+Trading Volume and RSI:
+
+The correlation coefficient is approximately -0.00248, with a p-value of 0.9. This suggests no significant linear relationship between trading volume and the RSI. The scatterplot supports this finding, showing no clear pattern or trend between the RSI and trading volume.
+
+Trading Volume and MACD:
+
+The correlation coefficient is about 0.156 with a p-value close to 0. This indicates a weak positive linear relationship between trading volume and the MACD. The scatterplot may show a slight positive trend, but given the weakness of the correlation, the MACD's predictive power for trading volume is likely limited.
+
+Trading Volume and Bollinger Bands:
+
+The correlation coefficient here is 0.663 with a p-value < 2e-16, suggesting a moderate positive linear relationship between trading volume and Bollinger Bands. The plot likely reflects this with higher trading volumes corresponding with the activation of the Bollinger Bands (true category).
+
+
+These results suggest that among the three technical indicators examined, Bollinger Bands have the most substantial relationship with Bitcoin trading volume, followed by MACD with a weaker association, and RSI with essentially no correlation. These findings can help inform predictions about trading volume based on the status of Bollinger Bands, though further analysis would be needed to build a robust predictive model.
+
+### Yearly Trends in Trading Volume
+ANOVA to analyze differences in yearly trading volumes:
+```{r, echo=T, results='markup'}
+# Extract year from date
+btc_data$year <- format(btc_data$date, "%Y")
+
+# ANOVA for yearly trends
+aov_results <- aov(volume ~ year, data = btc_data)
+summary(aov_results)
+
+```
+
+The ANOVA results provided indicate a highly significant effect of the year on the trading volume of Bitcoin (p-value < 2e-16). The summary indicates that the factor "year" explains a substantial amount of the variance in the trading volume (with a large F-value of 760), which suggests that the mean trading volumes are not equal across different years. This implies that there is a significant yearly trend in Bitcoin trading volume, with certain years having markedly higher or lower trading volumes compared to others. Given the significance level, we can be confident that the variation in trading volume across years is not due to random chance.
+
+### Correlation Analysis To Check For Patterns
+### Can we identify patterns or trends in trading volume related to specific market conditions indicated by technical analysis?
+```{r, echo=T, results='markup'}
+cor_volume_rsi <- cor.test(btc_data$volume, btc_data$rsi_7)
+cor_volume_macd <- cor.test(btc_data$volume, btc_data$macd)
+cor_volume_bollinger <- cor.test(btc_data$volume, btc_data$bollinger)
+
+# Print the correlation results
+print(cor_volume_rsi)
+print(cor_volume_macd)
+print(cor_volume_bollinger)
+
+# Scatter plot for Volume vs. RSI
+ggplot(btc_data, aes(x = rsi_7, y = volume)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Scatterplot of Trading Volume vs. RSI", x = "RSI", y = "Trading Volume")
+
+# Scatter plot for Volume vs. MACD
+ggplot(btc_data, aes(x = macd, y = volume)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Scatterplot of Trading Volume vs. MACD", x = "MACD", y = "Trading Volume")
+
+# Scatter plot for Volume vs. Bollinger Bands
+ggplot(btc_data, aes(x = bollinger, y = volume)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "orange") +
+  labs(title = "Scatterplot of Trading Volume vs. Bollinger Bands", x = "Bollinger Bands", y = "Trading Volume")
+
+```
+The correlation analysis outputs and visual plots provided indicate that:
+
+There is no significant correlation between the trading volume of Bitcoin and its RSI value. The Pearson correlation coefficient is nearly zero (-0.00248) with a p-value of 0.9, suggesting no linear relationship.
+
+There is a weak but significant positive correlation between the trading volume and MACD values with a correlation coefficient of 0.156 and a p-value significantly less than 0.05.
+
+A moderately strong correlation is observed between trading volume and Bollinger Bands with a correlation coefficient of 0.663, which is substantiated by the very low p-value (<2e-16). This indicates a significant linear relationship, where higher values on the Bollinger Bands are associated with larger trading volumes.
+
+From the scatterplots:
+
+The "Scatterplot of Trading Volume vs. RSI" shows data points heavily clustered near the lower end of the RSI scale without any discernible trend, which aligns with the almost zero correlation coefficient.
+
+The "Scatterplot of Trading Volume vs. MACD" shows a slight positive trend, as indicated by the fitted line, but the wide spread of the points suggests a lot of variability that isn't captured by a linear relationship alone.
+
+The "Scatterplot of Trading Volume vs. Bollinger Bands" shows an upward trend, where higher Bollinger Band values generally correspond with higher trading volumes, supported by the correlation analysis.
+
+For the question regarding the identification of patterns or trends in trading volume related to specific market conditions indicated by technical analysis, these analyses suggest that the Bollinger Bands might be a useful indicator for such patterns, especially given the moderate correlation with trading volume. However, the RSI and MACD are less useful for predicting trading volume based on the data provided.
+
+### At what volumes were the RSI and CCI the strongest and weakest?
+
+```{r, echo=T, results='markup'}
+# Load necessary library
+library(ggplot2)
+
+
+# Define volume ranges for analysis
+volume_breaks <- quantile(btc_data$volume, probs = seq(0, 1, 0.25))
+btc_data$volume_range <- cut(btc_data$volume, breaks = volume_breaks, include.lowest = TRUE, labels = c("Low", "Medium", "High", "Very High"))
+
+# Aggregate data based on volume range
+volume_analysis <- aggregate(cbind(rsi_7, cci_7) ~ volume_range, data = btc_data, function(x) c(mean = mean(x, na.rm = TRUE), min = min(x, na.rm = TRUE), max = max(x, na.rm = TRUE)))
+
+# Output the aggregated data
+print(volume_analysis)
+
+```
+
+## Ghaida---------------------------------------------------
+### Q1
+```{r, echo=T, results='markup'}
+library(stats)
+model <- lm(volume ~ open + high + low + close, data = btc_data)
+summary(model)
+```
+
+
+### Q2 
+```{r, echo=T, results='markup'}
+model <- lm(volume ~ open + high + low + close, data = btc_data)
+summary(model)
+```
+
+```{r, echo=T, results='markup'}
+# For the first model with price variables
+price_correlation <- cor(btc_data[c("open", "high", "low", "close", "volume")])
+
+# For the second model with technical indicators
+indicator_correlation <- cor(btc_data[c("rsi_7", "macd", "bollinger", "volume")])
+
+# Output the correlation matrices
+price_correlation    
+indicator_correlation
+```
+
+## Ujjawal---------------------------------------------------
+### Find the strongest and weakest levels of RSI and CCI corresponding years
+
+
+``` {r Outlier Detection Correlation Matrix and Histograms, include=TRUE, results=TRUE}
+library(corrplot)
+bitcoin_data <- btc_data
+breaks <- seq(from=min(bitcoin_data$volume),
+                to=max(bitcoin_data$volume), length=10)
+hist(bitcoin_data$volume, xlab = "Volume", main = "Histogram of Volume Data", breaks=breaks, col = "pink")
+hist(bitcoin_data$close, xlab = "Cloing Price", main = "Histogram of Closing Price Data", breaks=seq(from=min(bitcoin_data$close),
+                to=max(bitcoin_data$close), length=10), col = "green")
+boxplot(bitcoin_data$volume, ylab='Volume (Units)', main = "Volume Outliers", col = "orange")
+boxplot(bitcoin_data$close, ylab='Prices (USD)', main ="Closing Prices Outliers",  col = "lightgreen")
+
+correlations <- cor(bitcoin_data[, c("volume", "open", "high", "low", "close", "rsi_7", "macd", "rsi_14","cci_7","cci_14","sma_50","ema_50","sma_100","bollinger","atr_7","atr_14")])
+corrplot(correlations, method = "circle", main = "Correlation plot of all the indicators")
+
+cr_volume_rsi <- cor.test(bitcoin_data$volume, bitcoin_data$rsi_7)
+cr_volume_rsi
+
+
+plot(bitcoin_data$volume, bitcoin_data$open, xlab='Volume', ylab='close', col = "#00000020", pch = 19, main = "Correlation plot between all the indicators")
+points(bitcoin_data$volume, bitcoin_data$close, col='#00000040', pch=19)
+points(bitcoin_data$volume, bitcoin_data$rsi_7, col='#00000050', pch=19)
+points(bitcoin_data$volume, bitcoin_data$rsi_14, col='#00000060', pch=19)
+points(bitcoin_data$volume, bitcoin_data$cci_7, col='#00000090', pch=19)
+points(bitcoin_data$volume, bitcoin_data$cci_14, col='maroon', pch=19)
+points(bitcoin_data$volume, bitcoin_data$ema_50, col='yellow', pch=19)
+points(bitcoin_data$volume, bitcoin_data$ema_100, col='blue', pch=19)
+points(bitcoin_data$volume, bitcoin_data$sma_50, col='pink', pch=19)
+points(bitcoin_data$volume, bitcoin_data$sma_100, col='lightblue', pch=19)
+points(bitcoin_data$volume, bitcoin_data$bollinger, col='red', pch=19)
+points(bitcoin_data$volume, bitcoin_data$atr_7, col='orange', pch=19)
+points(bitcoin_data$volume, bitcoin_data$atr_14, col='lightgreen', pch=19)
+legend('topright',legend=c('open', 'close','rsi_7','rsi_14','cci_7','cci_14','ema_50','ema_100','sma_50','sma_100','bollinger','atr_7','atr_14'),
+       pch=c(19, 19), col=c('#00000020', '#00000040','#00000050','#00000060','#00000090','maroon','yellow','blue','pink','lightblue','red','orange','lightgreen'))
+
+```
+
+
+
+### Including Plots
+
+Scatter Plots for basic understanding of 
+
+```{r Scatterplots and QQnorm for various Indicators, include=TRUE, results=TRUE}
+library(ggplot2)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = rsi_7, col= rsi_7)) + geom_point(mapping = aes(color = rsi_7), alpha=0.3) 
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = close, col= volume)) + geom_point(mapping = aes(color = close), alpha=0.3)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = sma_50, col= sma_50)) + geom_point(mapping = aes(color = sma_50), alpha=0.3)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = sma_100, col= sma_100)) + geom_point(mapping = aes(color = sma_100), alpha=0.3)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = ema_50, col= ema_50)) + geom_point(mapping = aes(color = ema_50), alpha=0.3)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = ema_100, col= ema_100)) + geom_point(mapping = aes(color = ema_100), alpha=0.3)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = cci_7, col= cci_7)) + geom_point(mapping = aes(color = cci_7), alpha=0.3)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = cci_14, col= cci_14)) + geom_point(mapping = aes(color = cci_14), alpha=0.3)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = bollinger, col= bollinger)) + geom_point(mapping = aes(color = bollinger), alpha=0.3)
+ggplot(data=bitcoin_data, mapping = aes(x=volume, y = atr_7, col= atr_7)) + geom_point(mapping = aes(color = atr_7), alpha=0.3)
+ggplot(data = bitcoin_data, mapping = aes(x = volume, y = atr_14)) + geom_point(mapping = aes(color = atr_14), alpha = 0.3)
+qqnorm(bitcoin_data$volume, main="QQ Plot for Volume")
+qqnorm(bitcoin_data$close, main="QQ plot of Closing Prices")
+qqnorm(bitcoin_data$open, main="QQ Plot of Open Prices")
+
+ggplot(data = bitcoin_data, aes(x = volume, fill= volume)) +
+  geom_density(alpha=0.8)
+
+
+```
+
+```{r, include=TRUE, results='markup'}
+
+# Find the strongest and weakest levels of RSI and corresponding years
+strongest_RSI <- max(bitcoin_data$rsi_7)
+weakest_RSI <- min(bitcoin_data$rsi_7)
+strongest_RSI_year <- bitcoin_data$date[which.max(bitcoin_data$rsi_7)]
+weakest_RSI_year <- bitcoin_data$date[which.min(bitcoin_data$rsi_7)]
+
+strongest_RSI
+strongest_RSI_year
+weakest_RSI
+weakest_RSI_year
+
+
+
+
+# Find the strongest and weakest levels of RSI and corresponding years
+
+
+# Find the strongest and weakest levels of CCI and corresponding years
+strongest_CCI <- max(bitcoin_data$cci_7)
+weakest_CCI <- min(bitcoin_data$cci_7)
+strongest_CCI_year <- bitcoin_data$date[which.max(bitcoin_data$cci_7)]
+weakest_CCI_year <- bitcoin_data$date[which.min(bitcoin_data$cci_7)]
+
+strongest_CCI_year
+strongest_CCI
+weakest_CCI_year
+weakest_CCI
+
+strongest_bollinger <- max(bitcoin_data$bollinger)
+weakest_bollinger <- min(bitcoin_data$bollinger)
+strongest_bollinger_year <- bitcoin_data$date[which.max(bitcoin_data$bollinger)]
+weakest_bollinger_year <- bitcoin_data$date[which.min(bitcoin_data$bollinger)]
+
+strongest_bollinger
+weakest_bollinger
+strongest_bollinger_year
+weakest_bollinger_year
+
+strongest_sma <- max(bitcoin_data$sma_50)
+weakest_sma <- min(bitcoin_data$sma_50)
+strongest_sma50_year <- bitcoin_data$date[which.max(bitcoin_data$sma_50)]
+weakest_sma50_year <- bitcoin_data$date[which.min(bitcoin_data$sma_50)]
+
+strongest_ema50 <- max(bitcoin_data$ema_50)
+weakest_ema50 <- min(bitcoin_data$ema_50)
+strongest_ema50_year <- bitcoin_data$date[which.max(bitcoin_data$ema_50)]
+weakest_ema50_year <- bitcoin_data$date[which.min(bitcoin_data$ema_50)]
+
+anova_rsi <- aov(rsi_7 ~ volume, data = bitcoin_data)
+anova_cci <- aov(cci_7~volume, data = bitcoin_data)
+anova_bollinger <- aov(bollinger ~ volume, data = bitcoin_data)
+anova_sma50 <- aov(sma_50 ~ volume, data = bitcoin_data)
+anova_ema50 <- aov(ema_50 ~ volume, data = bitcoin_data)
+
+summary(anova_rsi)
+summary(anova_cci)
+summary(anova_bollinger)
+summary(anova_sma50)
+summary(anova_ema50)
+
+
+
+
+# Aggregate data by year, summing up the volume for each year
+volume_by_year <- aggregate(volume ~ date, data = bitcoin_data, FUN = sum)
+volume_by_year
+max_volume_year <- volume_by_year[which.max(volume_by_year$Volume),1]
+max_volume_year
+
+bar_plot <- ggplot(volume_by_year, aes(x = date, y = volume)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  labs(title = "Total Volume Traded Each Year",
+       x = "Year",
+       y = "Total Volume")
+
+bar_plot
+
+
+```
