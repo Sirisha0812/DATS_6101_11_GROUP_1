@@ -1,0 +1,93 @@
+---
+title: "Q3nQ4"
+output: html_document
+date: "2024-04-21"
+---
+---
+
+```{r init, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+#knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+
+#load data and summary
+
+```{r}
+install.packages("randomForest")
+
+# Load necessary libraries
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(randomForest)
+library(caret)
+library(class)
+```
+
+```{r}
+data = customer_data
+
+# View the first few rows of the dataset
+head(data)
+
+# Summary of the data to understand its structure
+summary(data)
+
+# Check for missing values
+sum(is.na(data))
+
+```
+
+
+
+```{r}
+# Convert categorical variables to factor
+data$gender <- as.factor(data$gender)
+data$education <- as.factor(data$education)
+data$region <- as.factor(data$region)
+data$loyalty_status <- as.factor(data$loyalty_status)
+data$purchase_frequency <- as.factor(data$purchase_frequency)
+
+# Install the randomForest package if not already installed
+if (!require(randomForest)) {
+    install.packages("randomForest", dependencies = TRUE)
+    library(randomForest)
+}
+
+# Assuming your data is correctly formatted and all necessary columns are factors
+# Fit the Random Forest model
+set.seed(123)  # Set a random seed for reproducibility
+rf_model <- randomForest(purchase_frequency ~ age + gender + income + education + region + loyalty_status, data = data, importance = TRUE, ntree = 500)
+
+# Print the model summary
+print(rf_model)
+
+# Check the importance of each variable
+importance(rf_model)
+
+```
+
+
+```{r}
+# Install ggplot2 package if not already installed
+if (!require(ggplot2)) {
+    install.packages("ggplot2", dependencies = TRUE)
+    library(ggplot2)
+}
+
+# Now run your ggplot code
+ggplot(data, aes(x=education, fill=purchase_frequency)) + 
+    geom_bar(position="fill") + 
+    facet_wrap(~ income_segment) + 
+    labs(title="Purchase Frequency by Education Level and Income Segment", y="Proportion", x="Education Level") +
+    theme_minimal()
+
+```
