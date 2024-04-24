@@ -19,3 +19,17 @@ features <- cbind(product_category_factor, gender_factor, education_factor, regi
 k <- 3  # Number of clusters
 set.seed(123)  # Set seed for reproducibility
 kmeans_result <- kmeans(features, centers = k)
+
+ggplot() +
+  geom_point(aes(x = purchase_frequency_factor, y = customer_data$purchase_amount, 
+                 color = factor(cluster_assignments), 
+                 shape = gender_factor, 
+                 size = education_factor), 
+             alpha = 0.7) +  # Adjust transparency for better visibility
+  labs(title = "Customer Segmentation based on Purchase Behavior",
+       x = "Purchase Frequency",
+       y = "Purchase Amount",
+       color = "Cluster",
+       shape = "Gender",
+       size = "Education") +
+  theme_minimal()
