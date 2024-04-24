@@ -47,3 +47,17 @@ for (i in 1:(n_clusters - 1)) {
   }
 }
 
+# Convert distance matrix to long format
+distance_df <- as.data.frame(as.table(distances))
+colnames(distance_df) <- c("Cluster1", "Cluster2", "Distance")
+
+# Filter out self-distances (diagonal) and duplicate entries
+distance_df <- distance_df[distance_df$Cluster1 != distance_df$Cluster2, ]
+
+# Plot the distances using a heatmap
+ggplot(distance_df, aes(x = Cluster1, y = Cluster2, fill = Distance)) +
+  geom_tile() +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(title = "Euclidean Distances Between Clusters",
+       x = "Cluster", y = "Cluster", fill = "Distance") +
+  theme_minimal()
