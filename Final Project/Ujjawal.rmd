@@ -1,1 +1,13 @@
+customer_data = read.csv("customer_data.csv")
+summary((customer_data))
+str(customer_data)
 
+
+gender_factor <- (factor(customer_data$gender, labels = c(0,1)))
+education_factor <- (factor(customer_data$education, levels = c("Bachelor","Masters","HighSchool","College"), labels = c(0,1,2,3)))
+loyalty_factor <- factor(customer_data$loyalty_status, levels = c("Gold","Regular","Silver"), labels = c(0,1,2))
+region_factor <- factor(customer_data$region, levels = c("East","West","South","North"), labels = c(0,1,2,3))
+print(region_factor)
+purchase_frequency_factor <- (factor(customer_data$purchase_frequency, levels = c("frequent","rare","occasional"), labels = c(0,1,2)))
+print(purchase_frequency_factor)
+product_category_factor <- factor(customer_data$product_category, levels = c("Books","Clothing","Food","Electronics","Home","Beauty","Health"), labels = c(0,1,2,3,4,5,6))
