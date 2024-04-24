@@ -33,3 +33,17 @@ ggplot() +
        shape = "Gender",
        size = "Education") +
   theme_minimal()
+
+centroids <- kmeans_result$centers
+
+# Calculate Euclidean distances between centroids
+n_clusters <- nrow(centroids)
+distances <- matrix(NA, nrow = n_clusters, ncol = n_clusters)
+
+for (i in 1:(n_clusters - 1)) {
+  for (j in (i + 1):n_clusters) {
+    distances[i, j] <- sqrt(sum((centroids[i, ] - centroids[j, ])^2))
+    distances[j, i] <- distances[i, j]  # Since distances are symmetric
+  }
+}
+
