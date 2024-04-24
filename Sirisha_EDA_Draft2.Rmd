@@ -1,0 +1,289 @@
+---
+title: "Intro to DS - PCA / PCR"
+author: "SIRISHA GINNU"
+date: "04/19/24"
+# date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+## EXPLORATORY DATA ANALYSIS (EDA)
+
+Objective: Perform an Exploratory Data Analysis (EDA) to understand the basic characteristics of the customer dataset.
+
+We'll look at the distribution of key variables, visualize them, and test whether the data is skewed (left-skewed or right-skewed). Based on the project proposal, we'll also focus on checking the relationships between purchase frequency and various customer characteristics as outlined, using correlation analysis and statistical tests like chi-square, as appropriate.
+
+Initial Observations:
+
+1.There are 100,000 entries in the dataset.
+2.The age ranges from 12 to 49, with an average of around 30 years.
+3.Income ranges from 5,000 to 50,000, averaging around 27,516.
+4.The purchase amount varies significantly, indicating diverse buying patterns.
+5.Satisfaction scores range from 0 to 10, with an average slightly above 5, suggesting moderate satisfaction overall.
+
+#Now, let’s visualize the distributions of several key variables: 'age', 'income', 'purchase_amount', and 'satisfaction_score'. We'll also look at the skewness of these distributions to determine if they are left-skewed or right-skewed. This will help us understand the typical customer profile and buying behavior. 
+
+
+```{r, echo=T, results='markup'}
+library(ggplot2)
+library(dplyr)
+library(readr)
+
+# Read the dataset into an R data frame
+customer_data <- read_csv("customer_data.csv")
+
+# Check the structure of your data frame
+str(customer_data)
+
+# Histogram for Age Distribution
+ggplot(customer_data, aes(x=age)) + 
+  geom_histogram(binwidth=1, fill="skyblue", color="black") + 
+  labs(title="Age Distribution") +
+  theme_minimal()
+
+# Histogram for Income Distribution
+ggplot(customer_data, aes(x=income)) + 
+  geom_histogram(binwidth=1000, fill="green", color="black") + 
+  labs(title="Income Distribution") +
+  theme_minimal()
+
+# Histogram for Purchase Amount Distribution
+ggplot(customer_data, aes(x=purchase_amount)) + 
+  geom_histogram(binwidth=500, fill="gold", color="black") + 
+  labs(title="Purchase Amount Distribution") +
+  theme_minimal()
+
+# Histogram for Satisfaction Score Distribution
+ggplot(customer_data, aes(x=satisfaction_score)) + 
+  geom_histogram(binwidth=1, fill="pink", color="black") + 
+  labs(title="Satisfaction Score Distribution") +
+  theme_minimal()
+
+
+
+```
+
+
+Age Distribution: The distribution of age appears roughly normal but slightly right-skewed, indicating a higher frequency of younger customers.
+Income Distribution: Income also exhibits a right-skewed distribution, with many customers earning towards the lower end of the scale.
+Purchase Amount Distribution: Purchase amounts are right-skewed, with most purchases clustering at the lower end of the amount spectrum.
+Satisfaction Score Distribution: This shows a relatively uniform distribution across the scores, with slight peaks around the lower and upper bounds.
+
+The binary nature of the Promotion Usage is clear from its countplot, showing more customers not using promotions than those who do.
+
+#Skewness and Statistical Tests
+Next, we will calculate the skewness for the numerical variables to quantify their asymmetry. Additionally, we'll perform chi-square tests to examine the independence between categorical variables like gender, education, region, and loyalty status with purchase frequency, as these tests can help identify potential patterns and associations relevant to the project objectives. Let's proceed with these analyses.  
+
+
+```{r s1, echo=T, results='markup'}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(e1071) # for skewness
+library(tidyr) # for gathering
+
+# Assuming your CSV has been read into `customer_data` as shown previously
+# customer_data <- read_csv("path_to_your_csv_file.csv")
+
+# Calculate skewness for numerical variables
+numerical_variables <- c("age", "income", "purchase_amount", "satisfaction_score")
+skewness_values <- sapply(customer_data[numerical_variables], skewness)
+
+# Print the skewness values
+print(skewness_values)
+
+# For chi-square tests, we need to make sure categorical variables are factors
+customer_data <- customer_data %>%
+  mutate(across(c(gender, education, region, loyalty_status, product_category), as.factor))
+
+# Perform chi-square tests
+chi_square_results <- list()
+categorical_variables <- c("gender", "education", "region", "loyalty_status", "product_category")
+
+for (variable in categorical_variables) {
+  # Create a contingency table
+  contingency_table <- table(customer_data[[variable]], customer_data$purchase_frequency)
+  
+  # Perform the chi-square test
+  chi_square_results[[variable]] <- chisq.test(contingency_table)
+}
+
+# Output the chi-square test results
+chi_square_results
+
+```
+
+#For a clear visual comparison of gender versus purchase amount, a boxplot or a violin plot would be appropriate. These types of plots are excellent for displaying the distribution of a numerical variable across the levels of a categorical variable.
+
+```{r}
+library(ggplot2)
+
+# Assuming your data is already read into `customer_data`
+
+# Create a boxplot for gender vs purchase amount
+ggplot(customer_data, aes(x = gender, y = purchase_amount, fill = gender)) +
+  geom_boxplot() +
+  labs(x = "Gender", y = "Purchase Amount", title = "Gender vs Purchase Amount") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Hides the legend, as the color coding by gender is typically redundant in this context
+
+
+```
+
+
+```{r}
+library(ggplot2)
+
+# Assuming your data is already read into `customer_data`
+
+# Create a boxplot for product category vs satisfaction score
+ggplot(customer_data, aes(x = product_category, y = satisfaction_score, fill = product_category)) +
+  geom_boxplot() +
+  labs(x = "Product Category", y = "Satisfaction Score", title = "Product Category vs Satisfaction Score") +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1)) # Rotate x labels for better readability
+
+
+
+```
+
+
+
+
+####
+
+```{r}
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(readr)
+
+# Set the working directory to the location of your dataset if needed
+# setwd("path/to/your/directory")
+
+# Read the dataset into an R data frame
+customer_data <- read_csv("customer_data.csv")
+
+# Recode purchase frequency as an ordered factor to preserve order in statistical tests
+customer_data$purchase_frequency <- factor(customer_data$purchase_frequency, 
+                                           levels = c("rare", "occasional", "frequent"),
+                                           ordered = TRUE)
+
+# Convert ordered factors to numeric for correlation analysis
+customer_data$purchase_frequency_numeric <- as.numeric(customer_data$purchase_frequency)
+
+# Perform a correlation test and extract the correlation coefficient
+correlation_test <- cor.test(customer_data$income, customer_data$purchase_frequency_numeric, 
+                             method = "spearman")  # Spearman's rank correlation, more appropriate for ordinal data
+correlation <- correlation_test$estimate
+
+# Plotting the data using ggplot2
+ggplot(customer_data, aes(x = income, y = purchase_frequency_numeric)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = paste("Income vs. Purchase Frequency Correlation: Spearman rho =", round(correlation, 2)),
+       x = "Income",
+       y = "Purchase Frequency (Numeric)") +
+  theme_minimal()
+
+# Print the plot
+print(ggplot)
+
+
+```
+```{r}
+
+# Visualizing the distribution of satisfaction scores
+ggplot(customer_data, aes(x = satisfaction_score)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribution of Satisfaction Scores", x = "Satisfaction Score", y = "Count") +
+  theme_minimal()
+
+# Visualizing the relationship between satisfaction scores and purchase frequencies
+ggplot(customer_data, aes(x = satisfaction_score, y = as.numeric(purchase_frequency), group = purchase_frequency)) +
+  geom_boxplot(aes(fill = purchase_frequency)) +
+  labs(title = "Purchase Frequency by Satisfaction Score", x = "Satisfaction Score", y = "Purchase Frequency (Numeric)") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Pastel1")  # Color coding for different purchase frequencies
+
+# Statistical Analysis: Correlation or Chi-Square Test depending on the data structure
+# If satisfaction score is treated as numeric
+cor_test <- cor.test(customer_data$satisfaction_score, as.numeric(customer_data$purchase_frequency), method = "spearman")
+print(cor_test)
+
+# If satisfaction score is treated as categorical
+# Convert to a factor if not already
+customer_data$satisfaction_score <- factor(customer_data$satisfaction_score)
+# Chi-square test
+chi_sq_test <- chisq.test(table(customer_data$satisfaction_score, customer_data$purchase_frequency))
+print(chi_sq_test)
+
+
+
+
+```
+
+```{r}
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(gridExtra)
+
+data <- read_csv("customer_data.csv")
+
+# Convert necessary factors
+data$purchase_frequency <- factor(data$purchase_frequency, levels = c("rare", "occasional", "frequent"))
+data$income_level <- ifelse(data$income > median(data$income, na.rm = TRUE), "High", "Low")
+data$income_level <- factor(data$income_level)
+
+# Descriptive statistics
+summary(data)
+
+# Correlation analysis
+income_purchase_cor <- cor(data$income, data$purchase_amount, use = "complete.obs")
+
+# Linear regression for satisfaction score influence
+lm_result <- lm(purchase_amount ~ satisfaction_score, data = data)
+
+# Multiple regression for demographic factors
+multi_lm <- lm(purchase_amount ~ age + gender + income + education, data = data)
+
+# Interaction effect of education and income level
+interaction_lm <- lm(purchase_amount ~ education * income_level, data = data)
+
+# Visualization of income distribution and purchase amount by frequency
+p1 <- ggplot(data, aes(x = income)) + geom_histogram(bins = 30, fill = "blue") + ggtitle("Income Distribution")
+
+p2 <- ggplot(data, aes(x = purchase_frequency, y = purchase_amount)) + geom_boxplot() + ggtitle("Purchase Amount by Frequency")
+
+# Combine plots into a single grid
+grid.arrange(p1, p2, ncol = 2)
+
+
+```
+
+
+
