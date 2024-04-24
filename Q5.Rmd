@@ -1,0 +1,113 @@
+---
+title: "Question 5"
+output: html_document
+date: "2024-04-24"
+---
+```{r init, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+#knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+we are trying to answer the SMART question of : Can we segment customers effectively based on their purchasing behavior and demographic factors by the next marketing cycle?
+
+```{r}
+# Load necessary libraries
+
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("factoextra")) install.packages("factoextra")
+
+library(dplyr)
+library(ggplot2)
+library(factoextra)
+
+
+# Preprocessing data: converting factors to numeric codes
+data <- data %>%
+  mutate_if(is.factor, as.numeric)
+
+# Selecting relevant features for clustering
+# Here we select age, income, and region as demographic factors,
+# and you could add purchase frequency, purchase amount etc.
+# Make sure to standardize these features as K-means is sensitive to the scale of the data
+data_for_clustering <- data %>%
+  select(age, income, region, purchase_amount, purchase_frequency) %>%
+  na.omit() %>%  # Removing any NAs
+  scale()  # Standardizing the data
+
+# Perform K-means clustering
+set.seed(123)  # Setting seed for reproducibility
+k <- 5  # Number of clusters, decide based on business context or use methods like Elbow method to find optimal k
+clusters <- kmeans(data_for_clustering, centers = k, nstart = 25)
+
+# Adding cluster results to the original data
+data$cluster <- as.factor(clusters$cluster)
+
+# Plotting clusters, here using PCA for dimensionality reduction to visualize in 2D
+library(factoextra)
+fviz_cluster(clusters, data = data_for_clustering, geom = "point")
+
+
+```
+```{r}
+# Assuming you have the clusters and the data already prepared
+# Adding the cluster assignments to your original data
+data$cluster <- as.factor(clusters$cluster)
+
+# Profiling each cluster by calculating summary statistics for the features
+cluster_profiles <- data %>%
+  group_by(cluster) %>%
+  summarise(across(everything(), list(mean = mean, sd = sd))) # change 'everything()' if you have non-numeric columns
+
+# View the cluster profiles
+print(cluster_profiles)
+
+# You can also visualize the distribution of each feature within each cluster
+# For example, plotting the distribution of income across clusters
+ggplot(data, aes(x = income, fill = cluster)) +
+  geom_histogram(position = "dodge") +
+  theme_minimal() +
+  labs(title = "Income Distribution Across Clusters")
+
+
+```
+
+```{r}
+library(dplyr)
+
+# Assuming 'data' is your data frame and it contains a 'cluster' column from K-means
+cluster_averages <- data %>%
+  group_by(cluster) %>%
+  summarise(average_income = mean(income, na.rm = TRUE))  # Calculate average income for each cluster
+
+print(cluster_averages)
+
+
+```
+
+```{r}
+set.seed(123)
+wss <- sapply(1:10, function(k) {
+  kmeans(data_for_clustering, k, nstart = 10)$tot.withinss
+})
+plot(1:10, wss, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of clusters K", 
+     ylab = "Total within-clusters sum of squares")
+
+```
+Based on the additional details you provided, we have the average income for each of the five clusters obtained from a K-means clustering process. Here’s an interpretation that integrates the histograms and the average incomes:
+
+Cluster 1 (Red): This cluster has an average income of approximately $44,378.68. From the histogram, we can see that this cluster primarily represents higher-income customers, as indicated by the significant count of customers in the rightmost income brackets. Cluster 1 could be considered a premium customer segment.
+Cluster 2 (Green): The average income for this cluster is around $10,578.21. Customers in Cluster 2 are primarily in the lower income brackets based on the histogram. This group might be more price-sensitive and could be targeted with more affordable product lines or discount offers.
+Cluster 3 (Blue): Similar to Cluster 2, this cluster also has a low average income, approximately $10,591.74. It is likely that Clusters 2 and 3 represent different types of lower-income customer groups, which might be distinguishable by other behavioral or demographic factors not displayed in the histogram.
+Cluster 4 (Purple): This cluster's average income is about $10,707.79, which is again in the lower income range, similar to Clusters 2 and 3. The histogram suggests that Clusters 2, 3, and 4 likely represent a range of customers with lower economic backgrounds, perhaps varying by other factors like purchase frequency, education, or region.
+Cluster 5 (Pink): With an average income of $44,356.62, this cluster also represents higher-income customers, similar to Cluster 1. The histogram shows a concentration of customers in higher income brackets, suggesting that Cluster 5 could consist of affluent customers who may be interested in premium products or services.
+The histogram distributions and average incomes indicate that there are two distinct economic segments among the clusters: one with higher income (Clusters 1 and 5) and the other with lower income (Clusters 2, 3, and 4). For marketing purposes, different strategies could be developed for these segments. For instance, more luxurious or high-end products could be marketed to Clusters 1 and 5, while more economical options could be tailored to Clusters 2, 3, and 4. Other demographic and behavioral factors could further differentiate these clusters, providing additional targeting opportunities for marketing campaigns.
+
