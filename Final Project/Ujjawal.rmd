@@ -71,3 +71,14 @@ logit_model <- glm(gender_factor ~ region_factor + product_category_factor + pur
 # Check model summary
 summary(logit_model)
 ```
+
+anova_purchase_frequency <- aov(age ~ income, data = customer_data)
+
+# Print ANOVA table for purchase frequency
+print(summary(anova_purchase_frequency))
+
+# Perform ANOVA for purchase amount
+anova_purchase_amount <- aov(purchase_amount ~ loyalty_status, data = customer_data)
+
+# Print ANOVA table for purchase amount
+print(summary(anova_purchase_amount))
