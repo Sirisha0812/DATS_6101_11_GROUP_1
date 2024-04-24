@@ -61,3 +61,13 @@ ggplot(distance_df, aes(x = Cluster1, y = Cluster2, fill = Distance)) +
   labs(title = "Euclidean Distances Between Clusters",
        x = "Cluster", y = "Cluster", fill = "Distance") +
   theme_minimal()
+
+# Checking the age 
+library(stats)
+
+# Fit logistic regression model
+logit_model <- glm(gender_factor ~ region_factor + product_category_factor + purchase_frequency_factor + income + loyalty_factor + education_factor, data = customer_data, family = "binomial")
+
+# Check model summary
+summary(logit_model)
+```
