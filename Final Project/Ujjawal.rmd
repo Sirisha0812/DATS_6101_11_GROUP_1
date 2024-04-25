@@ -61,3 +61,69 @@ ggplot(distance_df, aes(x = Cluster1, y = Cluster2, fill = Distance)) +
   labs(title = "Euclidean Distances Between Clusters",
        x = "Cluster", y = "Cluster", fill = "Distance") +
   theme_minimal()
+
+# Checking the age 
+library(stats)
+
+# Fit logistic regression model
+logit_model <- glm(gender_factor ~ region_factor + product_category_factor + purchase_frequency_factor + income + loyalty_factor + education_factor, data = customer_data, family = "binomial")
+
+# Check model summary
+summary(logit_model)
+```
+
+anova_purchase_frequency <- aov(age ~ income, data = customer_data)
+
+# Print ANOVA table for purchase frequency
+print(summary(anova_purchase_frequency))
+
+# Perform ANOVA for purchase amount
+anova_purchase_amount <- aov(purchase_amount ~ loyalty_status, data = customer_data)
+
+# Print ANOVA table for purchase amount
+print(summary(anova_purchase_amount))
+
+
+library(stats)
+
+# Fit linear regression model
+lm_model <- lm(purchase_amount ~ promotion_usage, data = customer_data)
+
+# Check model summary
+summary(lm_model)
+
+# Calculate frequency of each product category
+product_category_frequency <- table(customer_data$product_category)
+
+# Sort product categories by frequency
+sorted_categories <- sort(product_category_frequency, decreasing = TRUE)
+
+# Print top N most frequently purchased product categories
+top_categories <- names(sorted_categories)[1:7]
+print(top_categories)
+
+correlation <- cor(customer_data$promotion_usage, customer_data$purchase_amount)
+
+# Print correlation coefficient
+print(correlation)
+
+library(ggplot2)
+
+# Create a scatter plot
+ggplot(customer_data, aes(x = promotion_usage, y = purchase_amount)) +
+  geom_point(alpha = 0.5) +  # Set transparency to 0.5
+  labs(title = "Relationship Between Promotion Usage and Purchase Amount",
+       x = "Promotion Usage",
+       y = "Purchase Amount") +
+  theme_minimal()
+
+library(ggplot2)
+
+# Create a scatter plot with a smoothing curve
+ggplot(customer_data, aes(x = promotion_usage, y = purchase_amount)) +
+  geom_point(alpha = 0.5) +  # Set transparency to 0.5 for points
+  geom_smooth(method = "loess", se = FALSE) +  # Add a smoothing curve
+  labs(title = "Non-linear Relationship Between Promotion Usage and Purchase Amount",
+       x = "Promotion Usage",
+       y = "Purchase Amount") +
+  theme_minimal()
