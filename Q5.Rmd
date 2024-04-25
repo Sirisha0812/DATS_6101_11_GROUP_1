@@ -102,7 +102,6 @@ plot(1:10, wss, type = "b", pch = 19, frame = FALSE,
      ylab = "Total within-clusters sum of squares")
 
 ```
-Based on the additional details you provided, we have the average income for each of the five clusters obtained from a K-means clustering process. Here’s an interpretation that integrates the histograms and the average incomes:
 
 Cluster 1 (Red): This cluster has an average income of approximately $44,378.68. From the histogram, we can see that this cluster primarily represents higher-income customers, as indicated by the significant count of customers in the rightmost income brackets. Cluster 1 could be considered a premium customer segment.
 Cluster 2 (Green): The average income for this cluster is around $10,578.21. Customers in Cluster 2 are primarily in the lower income brackets based on the histogram. This group might be more price-sensitive and could be targeted with more affordable product lines or discount offers.
