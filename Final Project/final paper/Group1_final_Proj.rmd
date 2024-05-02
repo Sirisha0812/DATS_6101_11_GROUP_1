@@ -1,0 +1,451 @@
+---
+Title: "ANALYZING CUSTOMER PURCHASING BEHAVIOUR"
+Authers: "Ghaida Takrooni، Long Huynh، Ujjawal dwivedi، Sirisha Ginnu"
+Date: "2024-04-24"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+date: "2024-03-25"
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+```{r init, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+#knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+## INTRODUCTION
+
+Understanding the factors that influence purchase frequency is crucial for businesses aiming to enhance customer engagement and optimize marketing strategies. Amidst shifting consumer preferences and the expanding influence of targeted marketing strategies, gaining insights into customer profiles across different regions and demographic groups is increasingly vital. In this project we aim to explore and analyze customer characteristics, and behavioral aspects. We will be examining the influence of various demographic and behavioral indicators and their effects on purchasing decisions. These indicators are crucial for comprehending the dynamics of consumer engagement, reflecting broader market trends and influencing business strategies.By preforming such analysis, companies can tailor their marketing efforts more effectively, potentially increasing customer loyalty and sales.
+
+
+###Literture review
+
+1. The Influence of Demographic Factors on Consumer Buying Behavior
+This study examined how age, gender, education, and income influence consumer buying behavior in the context of online shopping in Manado, Indonesia. The research utilized multiple linear regression analysis and found that age and education significantly impacted consumer behavior, while gender and income had less clear effects. The study highlighted the complex interplay of these demographic factors in shaping online consumer behavior.
+
+2. Demographic Impacts on Environmentally Friendly Purchase Behaviors
+Fisher et al.'s research focused on how demographics influence environmentally friendly purchasing behaviors. They found that gender (particularly females) exhibited more green behaviors. This study is significant as it used specific behaviors rather than general attitudes to better gauge demographic impacts on environmental purchasing, suggesting that specific behavioral analysis may reveal more about the influence of demographics than previously understood.
+
+3. Age, Gender, and Income: Do They Really Moderate Online Shopping Behavior?
+The study by Hernández et al. explored whether age, gender, and income moderate online shopping behavior among experienced e-shoppers. Interestingly, their findings suggest that these socioeconomic characteristics do not significantly influence the behavior of experienced online shoppers, indicating a homogenization of behavior across demographics in the digital shopping environmen(Emerald).
+
+
+## DATASET SUMMARY
+
+This dataset captures the detailes of customer demographics and purchasing behaviors. It includes both fundamental personal attributes such as age, gender, income, education and behavioral data such as region, loyalty status, purchase frequency, purchase amount, product category, promotion usage, satisfaction score which are useful for understanding customer profiles and shopping patterns. we believe that these insights can aid in developing targeted marketing strategies, enhancing customer relationship management, and optimizing product offerings across various regions and demographic groups.The dataset contains 100,000 entries with 12 columns, detailing various aspects of customer data. Here is s a brief overview of each column:
+
+```{r}
+data <- read.csv("customer_data.csv")
+
+print(str(data))
+
+summary(data)
+
+```
+
+
+### Limitations 
+
+The dataset we have used provides a comprehensive view of customer demographics and purchasing habits, serving as a robust base for understanding customer behaviors and market opportunities. However, like all datasets, it has its own limitations, and there are areas where additional information could enhance the quality of the dataset. For example, the dataset could benefit from incorporating time series data, which would allow for analysis of trends over time, seasonal buying patterns, or the timing of purchases relative to marketing campaigns. Features such as more detailed geographic data could also improve the accuracy of regional analysis, aiding in more localized marketing strategies. Furthermore, additional data on customer interactions, like customer service contacts or online engagement metrics, could offer deeper insights into customer satisfaction and loyalty. The inclusion of broader economic indicators or competitor data could also provide a more comprehensive context for the observed customer behaviors. 
+
+
+## EXPLORATORY DATA ANALYSIS (EDA)
+
+## WHAT CAN WE DO WITH THE ANALYSIS?
+
+**CONCEPTUAL FRAMEWORK**
+
+## SMART QUESTIONS
+
+### Analyze and Preprocess The Data Again 
+
+We preprocess the Data one more again to fit the models that we are going to test
+
+```{r, echo=T, results='markup'}
+# Read the dataset
+data <- read.csv("customer_data.csv")
+
+# Display the first few rows of the dataset
+head(data)
+
+# Get a summary of each column in the dataset
+summary(data)
+
+# Inspect the structure of the dataset
+str(data)
+
+# Check for missing values in each column
+sapply(data, function(x) sum(is.na(x)))
+```
+
+**Inspct for Outliers**
+
+```{r, echo=T, results='markup'}
+# Load necessary library
+library(ggplot2)
+
+# Plotting boxplot for income
+ggplot(data, aes(y = income)) + 
+  geom_boxplot(fill = "blue", color = "darkblue") + 
+  labs(title = "Boxplot of Income", y = "Income") +
+  theme_minimal()
+
+# Plotting boxplot for purchase_amount
+ggplot(data, aes(y = purchase_amount)) + 
+  geom_boxplot(fill = "green", color = "darkgreen") + 
+  labs(title = "Boxplot of Purchase Amount", y = "Purchase Amount") +
+  theme_minimal()
+
+# Plotting histogram for age
+ggplot(data, aes(x = age)) + 
+  geom_histogram(bins = 30, fill = "orange", color = "red") +
+  labs(title = "Histogram of Age", x = "Age") +
+  theme_minimal()
+
+# Plotting histogram for satisfaction_score
+ggplot(data, aes(x = satisfaction_score)) + 
+  geom_histogram(bins = 10, fill = "purple", color = "black") +
+  labs(title = "Histogram of Satisfaction Score", x = "Satisfaction Score") +
+  theme_minimal()
+
+```
+
+**Boxplot of Income:** The income distribution seems to have no visible outliers, and all data points fall within a reasonable range.
+
+**Boxplot of Purchase Amount:** There are a few outliers present above the upper whisker. These are values that lie beyond 1.5 times the interquartile range above the third quartile. You might want to investigate these points further to determine if they are errors or just natural variations in the data. Depending on the business context, very high purchase amounts might be legitimate.
+
+**Histogram of Age:** The age distribution appears to be fairly normal, centered around the late 20s to early 30s. There are no apparent outliers here.
+
+**Histogram of Satisfaction Score:** Most of the satisfaction scores are concentrated around the median value, with a significant peak. The distribution of satisfaction scores doesn't indicate the presence of outliers, but rather a left-skewed distribution with most customers having middle to high satisfaction scores.
+
+
+**Convert to factors:**
+
+```{r, echo=T, results='markup'}
+# Convert character columns to factors
+data$gender <- as.factor(data$gender)
+data$education <- as.factor(data$education)
+data$region <- as.factor(data$region)
+data$loyalty_status <- as.factor(data$loyalty_status)
+data$purchase_frequency <- as.factor(data$purchase_frequency)
+data$product_category <- as.factor(data$product_category)
+
+# Check the updated structure of the dataset to confirm changes
+str(data)
+```
+
+
+
+### Q1: What is the correlation coefficient between income levels and purchase frequency among customers?
+```{r, echo=T, results='markup'}
+# Load randomForest package
+library(randomForest)
+
+# Ensure 'purchase_frequency' is a factor, if not already
+data$purchase_frequency <- as.factor(data$purchase_frequency)
+
+# Fit Random Forest to predict purchase frequency based solely on income
+# We'll use a basic model with default settings for demonstration purposes
+rf_model_income <- randomForest(purchase_frequency ~ income, data = data, ntree = 100, importance = TRUE)
+
+# Obtain the importance of the 'income' variable
+income_importance <- importance(rf_model_income)
+
+# Print the importance
+print(income_importance)
+
+# We can also look at a simple plot of the model's predicted values vs the income to visualize the relationship
+predicted_frequency <- predict(rf_model_income, data)
+plot(data$income, predicted_frequency, col = data$purchase_frequency, pch = 19,
+     main = "Random Forest Predicted Purchase Frequency vs Income",
+     xlab = "Income", ylab = "Predicted Purchase Frequency")
+legend("topright", legend = levels(data$purchase_frequency), col = 1:length(levels(data$purchase_frequency)), pch = 19)
+
+# Since the purchase frequency is categorical, we could alternatively use the model to predict the probability of each class
+predicted_probs <- predict(rf_model_income, data, type = "prob")
+
+```
+
+**Feature Importance:**
+The 'MeanDecreaseAccuracy' and 'MeanDecreaseGini' are measures of feature importance. They indicate how much each predictor (in this case, 'income') contributes to the accuracy of the model and the purity of the model's nodes.
+
+**MeanDecreaseAccuracy:** A negative value suggests that including the 'income' variable in the model does not contribute to an increase in the accuracy of the model. In fact, it may be slightly decreasing it. However, since the decrease is relatively small, it's possible that 'income' just isn't a strong predictor in the presence of other variables.
+**MeanDecreaseGini:** The high Gini decrease value for 'income' suggests that it's an important variable for creating distinct groups or nodes within the Random Forest. A higher Gini decrease generally indicates a higher importance in the context of the model's internal decision-making process.
+
+**Plot Interpretation:**
+The plot shows the predicted purchase frequency as a function of 'income'. Each dot represents a prediction for a customer, and the colors represent the different levels of purchase frequency (green for 'rare', pink for 'occasional', black for 'frequent').
+
+From the plot, we can observe the following:
+
+There is a mix of 'occasional' and 'rare' purchase frequencies across all income levels. The 'frequent' category seems to be less common or potentially underrepresented in the dataset or the model's predictions.
+
+There does not appear to be a clear trend that would indicate higher income leads to a specific purchase frequency category. The predictions for 'rare', 'occasional', and 'frequent' are somewhat evenly spread across different incomes.
+
+### Q2: How does customer satisfaction score influence the frequency of purchases in the dataset?
+
+Given that 'purchase_frequency' is a categorical variable and 'satisfaction_score' is numerical, we can use machine learning classification algorithms to predict 'purchase_frequency' based on 'satisfaction_score'. We can then analyze the results to understand the influence of satisfaction scores on purchase frequency.
+
+Let's use a Random Forest classifier for this task, as it can handle both categorical and numerical data and can provide insights into feature importance. 
+
+```{r, echo=T, results='markup'}
+# Load randomForest package
+library(randomForest)
+
+# Fit Random Forest to predict purchase frequency based on satisfaction_score
+rf_model_satisfaction <- randomForest(purchase_frequency ~ satisfaction_score, data = data, ntree = 100, importance = TRUE)
+
+# Obtain the importance of the 'satisfaction_score' variable
+satisfaction_importance <- importance(rf_model_satisfaction)
+
+# Print the importance
+print(satisfaction_importance)
+
+# We can also visualize the relationship between satisfaction score and predicted purchase frequency
+predicted_frequency <- predict(rf_model_satisfaction, data)
+plot(data$satisfaction_score, predicted_frequency, col = data$purchase_frequency, pch = 19,
+     main = "Random Forest Predicted Purchase Frequency vs Satisfaction Score",
+     xlab = "Satisfaction Score", ylab = "Predicted Purchase Frequency")
+legend("topright", legend = levels(data$purchase_frequency), col = 1:length(levels(data$purchase_frequency)), pch = 19)
+
+# Optionally, we can calculate the probability of each purchase frequency class
+predicted_probs <- predict(rf_model_satisfaction, data, type = "prob")
+
+```
+
+**Logistic Regression**
+```{r, echo=T, results='markup'}
+# Load nnet for multinomial logistic regression
+library(nnet)
+
+# Fit Multinomial Logistic Regression on the data
+multinom_model <- multinom(purchase_frequency ~ satisfaction_score, data = data)
+
+# Predict on the data using the Multinomial Logistic Regression model
+multinom_predictions <- predict(multinom_model, data)
+
+# Visualize the relationship
+plot(data$satisfaction_score, as.numeric(multinom_predictions), col = as.numeric(data$purchase_frequency), pch = 19,
+     main = "Multinomial Logistic Regression Predicted Purchase Frequency vs Satisfaction Score",
+     xlab = "Satisfaction Score", ylab = "Predicted Purchase Frequency")
+legend("topright", legend = levels(data$purchase_frequency), pch = 19, col = 1:length(levels(data$purchase_frequency)))
+
+```
+
+**k-NN**
+
+The persistent error with knn() suggests that the satisfaction_score_scaled does not have enough variability, or the dataset is not large enough for the k-NN algorithm to differentiate between the classes effectively.
+
+A workaround for this issue could be adding a small amount of random noise to our satisfaction scores (jittering), although this approach should be used with caution as it adds randomness to your data which may not be desirable:
+
+```{r, echo=T, results='markup'}
+library(class)
+data$satisfaction_score_scaled <- scale(data$satisfaction_score)
+# Add jitter to the satisfaction scores to introduce small variances
+data$satisfaction_score_jittered <- jitter(data$satisfaction_score_scaled)
+
+# Fit k-NN using the jittered data
+set.seed(123) # Set seed for reproducibility
+knn_predictions <- knn(train = data[, 'satisfaction_score_jittered', drop = FALSE], 
+                       test = data[, 'satisfaction_score_jittered', drop = FALSE], 
+                       cl = data$purchase_frequency, k = 1)
+
+# Visualize the relationship
+plot(data$satisfaction_score_jittered, as.numeric(knn_predictions), col = as.numeric(data$purchase_frequency), pch = 19,
+     main = "k-NN Predicted Purchase Frequency vs Jittered Satisfaction Score",
+     xlab = "Jittered Satisfaction Score", ylab = "Predicted Purchase Frequency")
+legend("topright", levels(data$purchase_frequency), pch = 19, col = 1:length(levels(data$purchase_frequency)))
+
+```
+
+Looking at the output and plots for the three different models—multinomial logistic regression, k-NN with jittering, and random forest—we can draw some conclusions about the relationship between customer satisfaction score and purchase frequency.
+
+**Multinomial Logistic Regression Plot Interpretation:**
+The plot shows discrete points because logistic regression estimates probabilities that translate into specific classes. The points represent predicted purchase frequencies at different satisfaction scores.
+
+- There is a spread across the purchase frequency categories (frequent, occasional, rare) at varying satisfaction scores.
+
+- The model doesn't predict a clear increasing or decreasing trend, indicating that within this model's context, satisfaction score alone may not be a strong predictor of purchase frequency.
+
+**k-NN Plot Interpretation:**
+The k-NN plot, with jittering added to the satisfaction scores, shows a clear separation of classes.
+
+- The plot is segmented, with each satisfaction score level predominantly predicting one class of purchase frequency.
+
+- This indicates that, according to the k-NN model, there is a relationship where certain ranges of satisfaction scores are associated with specific purchase frequencies.
+
+**Random Forest Plot Interpretation:**
+The Random Forest plot also displays predictions for purchase frequency at different satisfaction scores.
+
+- Similar to the multinomial logistic regression model, the random forest predictions do not show a clear trend of satisfaction scores leading to a particular purchase frequency.
+- The random forest seems to have a bit of a mix in its predictions across satisfaction scores for different purchase frequencies.
+
+**Feature Importance from Random Forest:**
+- The 'MeanDecreaseAccuracy' value for 'satisfaction_score' is positive, indicating that the satisfaction score has a contribution to improving model accuracy.
+
+- The 'MeanDecreaseGini' also shows a positive value, suggesting that the satisfaction score helps in splitting the data into pure nodes effectively within the Random Forest model.
+
+**Overall Conclusion:**
+- The satisfaction score has some influence on purchase frequency, as indicated by its positive MeanDecreaseAccuracy and MeanDecreaseGini values in the random forest model. 
+
+- However, the plots suggest that the relationship is not straightforward or strongly linear, and satisfaction score alone may not be sufficient to predict purchase frequency accurately. 
+
+- The multinomial logistic regression and random forest models do not demonstrate a clear pattern or trend, suggesting other factors in addition to satisfaction score might be influencing purchase frequency.
+
+- k-NN results should be taken with caution due to the earlier encountered errors and the need for jittering, which could introduce artificial variance that is not present in the actual data.
+
+- These results imply that for businesses looking to understand and predict customer purchase frequency, it may be beneficial to consider a broader range of factors beyond just customer satisfaction scores.
+
+
+### Q3: Can we segment customers effectively based on their purchasing behavior and demographic factors by the next marketing cycle?
+
+- answerin this question can be done by using clustering techniques like K-means clustering.First, we will start by  performing the Elbow Method to detrmine the optimal number of clusters we need to answer this question.
+  
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(factoextra)
+
+data <- data %>%
+  mutate_if(is.character, as.factor) %>%  # Convert characters to factors
+  mutate_if(is.factor, as.numeric)  
+
+data_for_clustering <- data %>%
+  select(age, income, region, purchase_amount, purchase_frequency) %>%
+  na.omit() %>%  # Removing any NAs
+  scale() 
+
+set.seed(123)
+wss <- sapply(1:10, function(k) {
+  kmeans(data_for_clustering, k, nstart = 10)$tot.withinss
+})
+plot(1:10, wss, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of clusters K", 
+     ylab = "Total within-clusters sum of squares")
+
+```
+Here we can see that the optemal number of clusters is 4. so the  next step will be creating those clusters that group customers based on income and other variables.
+
+```{r}
+# Load necessary libraries
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("factoextra")) install.packages("factoextra")
+
+library(dplyr)
+library(ggplot2)
+library(factoextra)
+
+# Manually convert factor columns to numeric if appropriate
+data <- data %>%
+  mutate_if(is.factor, as.character) %>%  # Convert all factors to characters first
+  mutate(
+    region = as.numeric(as.factor(region)),           # Convert 'region' to numeric
+    purchase_frequency = as.numeric(as.factor(purchase_frequency))  # Convert 'purchase_frequency' to numeric
+  )
+
+# You can add similar lines for other factor columns needing conversion
+
+# Ensure all necessary columns are numeric
+if (any(!sapply(data[c("age", "income", "region", "purchase_amount", "purchase_frequency")], is.numeric))) {
+  stop("Not all columns are numeric. Check factor to numeric conversion.")
+}
+
+# Selecting relevant features for clustering
+data_for_clustering <- data %>%
+  select(age, income, region, purchase_amount, purchase_frequency) %>%
+  na.omit() %>%  # Removing any NAs
+  scale()  # Standardizing the data
+
+# Perform K-means clustering
+set.seed(123)  # Setting seed for reproducibility
+k <- 4  # Number of clusters
+clusters <- kmeans(data_for_clustering, centers = k, nstart = 25)
+
+# Adding cluster results to the original data
+data$cluster <- as.factor(clusters$cluster)
+
+# Plotting clusters, here using PCA for dimensionality reduction to visualize in 2D
+fviz_cluster(clusters, data = data_for_clustering, geom = "point")
+
+```
+
+
+```{r}
+# Assuming you have the clusters and the data already prepared
+# Adding the cluster assignments to your original data
+data$cluster <- as.factor(clusters$cluster)
+
+# Profiling each cluster by calculating summary statistics for the features
+cluster_profiles <- data %>%
+  group_by(cluster) %>%
+  summarise(across(everything(), list(mean = mean, sd = sd))) # change 'everything()' if you have non-numeric columns
+
+# View the cluster profiles
+print(cluster_profiles)
+
+# You can also visualize the distribution of each feature within each cluster
+# For example, plotting the distribution of income across clusters
+ggplot(data, aes(x = income, fill = cluster)) +
+  geom_histogram(position = "dodge") +
+  theme_minimal() +
+  labs(title = "Income Distribution Across Clusters")
+
+
+```
+
+
+```{r}
+library(dplyr)
+
+# Assuming 'data' is your data frame and it contains a 'cluster' column from K-means
+cluster_averages <- data %>%
+  group_by(cluster) %>%
+  summarise(average_income = mean(income, na.rm = TRUE))  # Calculate average income for each cluster
+
+print(cluster_averages)
+
+
+```
+Cluster 1 (Red): In this cluster we see that the average income is approximately $16,731.16. The income distribution shows that most individuals in this cluster are in the lower income brackets. which lead us to believe that this group might be more price-sensitive and could be targeted with budget friendly products and promotional discounts.
+
+Cluster 2 (Green): Here the average income is about $39,552.38, this cluster represents higherincome customers. This cluster can be considered a premium segment, likely interested in luxury or higher priced offerings.
+
+Cluster 3 (Blue): Customers in this cluster have an average income of $20,177.12, which position them in a somewhat middle income bracket. The distribution is fairly broad, suggesting a diverse group that might require a targeted approach based on other factors such as purchase behaviors or preferences.
+
+Cluster 4 (Purple): Similar to Cluster 2, this cluster also shows a higher average income of $39,670.97. Making them premium customer base that might be targeted with exclusive products and services.
+
+To summaries, lower Income Clusters like 1 and 3,  could benefit from marketing strategies focused on value for money, affordability, and frequent promotions to attract budget-conscious consumers. Higher Income Clusters like 2 and 4 should be targeted with stratgies that emphasize quality, exclusivity, and premium services, appealing to their capacity for discretionary spending.
+
+
+## CONCLUSION
+
+
+
+
+
+
+
+###References:
+
+•	Rambi, F. M., Saerang, D. P. E., & Rumokoy, F. S. (2014). The influence of demographic factors (age, gender, education, and income) on consumer buying behavior. Journal EMBA, 2(1), 90-98.
+
+•	Fisher, C., Bashyal, S., & Bachman, B. (2012). Demographic impacts on environmentally friendly purchase behaviors. Journal of Targeting, Measurement and Analysis for Marketing, 20(3/4), 172-184. https://doi.org/10.1057/jt.2012.13
+
+•	Hernández, B., Jiménez, J., & Martín, M. J. (2011). Age, gender, and income: Do they really moderate online shopping behavior? Online Information Review, 35(1), 113-133. https://doi.org/10.1108/14684521111113614
